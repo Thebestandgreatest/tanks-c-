@@ -1,8 +1,12 @@
-
-# Godot-specific ignores
+# Godot ignores
 .import/
 export.cfg
 export_presets.cfg
+.addons/
 
-# Mono-specific ignores
+# Mono ignores
 .mono/
+
+# Rider IDEA
+.idea/
+*.*.iml
