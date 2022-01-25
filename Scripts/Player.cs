@@ -5,13 +5,11 @@ public class Player : KinematicBody2D
 {
     // load values from file or server for custom games
     private const int TankSpeed = 100;
-    private const double AimSpeed = 1;
-
-    private double _turretAngle;
-    private double _mouseAngle;
+    private const double TurretRotateSpeed = 1;
+    private const double BodyRotateSpeed = 1;
 
     private Vector2 _velocity;
-    
+
     private Sprite _tankTurret;
     private Sprite _tankBody;
     private Label _rotationLabel;
@@ -20,52 +18,62 @@ public class Player : KinematicBody2D
     public override void _Ready()
     {
         _tankTurret = (Sprite) GetNode("tankTurret");
-        _tankBody = (Sprite) GetNode("tankBody");
+        _tankBody = (Sprite) GetNode("CollisionShape2D/tankBody");
         _rotationLabel = (Label) GetNode("Label");
     }
 
     public override void _PhysicsProcess(float delta)
     {
+        // bug if tank moves turret rotation breaks
         GetInput();
+        //Animate();
         _velocity = MoveAndSlide(_velocity);
-        
+
         //turret angle code
-        _mouseAngle = Math.Round(Mathf.Rad2Deg(_tankTurret.GlobalPosition.AngleToPoint(GetLocalMousePosition()))) - 90;
-        _turretAngle = (float)Math.Round(_tankTurret.RotationDegrees);
-        double targetAngle = AngleDifference(_mouseAngle, _turretAngle);
-        if (targetAngle > 1)
+        double mouseAngle = Math.Round(Mathf.Rad2Deg(_tankTurret.GlobalPosition.AngleToPoint(GetLocalMousePosition()))) - 90;
+        double turretAngle = (float) Math.Round(_tankTurret.RotationDegrees);
+        double angleDifference = AngleDifference(mouseAngle, turretAngle);
+        if (angleDifference > 1)
         {
-            _turretAngle -= AimSpeed;
+            turretAngle -= TurretRotateSpeed;
         }
-        else if (targetAngle < 1)
+        else if (angleDifference < 1)
         {
-            _turretAngle += AimSpeed;
+            turretAngle += TurretRotateSpeed;
         }
 
-        _rotationLabel.Text = "Target Angle: " + _mouseAngle + " Current Angle: " + _tankTurret.RotationDegrees;
-        _tankTurret.RotationDegrees = (float)Math.Round(_turretAngle);
+        //_rotationLabel.Text = "X Velocity: " + _velocity.x + " Y Velocity:" + _velocity.y + " Tankbody Rotation: " + _tankBody.RotationDegrees + " Vector Rotation: " +Mathf.Rad2Deg(_velocity.Angle());
+        _tankTurret.RotationDegrees = (float) Math.Round(turretAngle);
     }
 
     private void GetInput()
     {
-        // todo finalize tank movement from options
-        
-        // option 1
-        //      tank moves in the direction indicated by the arrow keys, movement is not controlled by the player
-        //      pros: easy to maneuver, simple to program
-        //      cons: 
-        // option 2
-        //      tank rotates to the indicated direction and then moves, movement is partially controlled by the player
-        //      pros: 
-        //      cons: delayed movement in wanted direction
-        
         //todo shooting
         _velocity = new Vector2();
         _velocity = Input.GetVector("ui_left", "ui_right", "ui_up", "ui_down") * TankSpeed;
     }
 
-    private static double AngleDifference(double testAngle, double currentAngle)
+    private void Animate()
     {
+        double angleDifference = AngleDifference(Mathf.Rad2Deg(_velocity.Angle()) + 90, _tankBody.RotationDegrees);
+        double bodyAngle = _tankBody.RotationDegrees;
+        
+        if (angleDifference > 0)
+        {
+            bodyAngle += BodyRotateSpeed;
+        }
+        else if (angleDifference < 0)
+        {
+            bodyAngle -= BodyRotateSpeed;
+        }
+
+        _tankBody.RotationDegrees = (float) bodyAngle;
+    }
+
+private static double AngleDifference(double testAngle, double currentAngle)
+    {
+        // thank you random person on stack overflow!
+        // Takes two angles in degrees and compares the distance between the angles, works for all angles including those outside of [-360,360]
         double diff = (currentAngle - testAngle + 180) % 360 - 180;
         return diff < -180 ? diff + 360 : diff;
     }
