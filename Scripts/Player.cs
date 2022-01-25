@@ -5,7 +5,7 @@ public class Player : KinematicBody2D
 {
     // load values from file or server for custom games
     private const int TankSpeed = 100;
-    private const double AimSpeed = 0.5;
+    private const double AimSpeed = 1;
 
     private double _turretAngle;
     private double _mouseAngle;
@@ -30,20 +30,20 @@ public class Player : KinematicBody2D
         _velocity = MoveAndSlide(_velocity);
         
         //turret angle code
-        _mouseAngle = Math.Round(_tankTurret.GlobalPosition.AngleToPoint(GetLocalMousePosition()), 2);
-        _turretAngle = Math.Round(_turretAngle, 2);
+        _mouseAngle = Math.Round(Mathf.Rad2Deg(_tankTurret.GlobalPosition.AngleToPoint(GetLocalMousePosition()))) - 90;
+        _turretAngle = (float)Math.Round(_tankTurret.RotationDegrees);
         double targetAngle = AngleDifference(_mouseAngle, _turretAngle);
-        if (targetAngle > _turretAngle)
+        if (targetAngle > 1)
         {
             _turretAngle -= AimSpeed;
         }
-        else if (targetAngle < _turretAngle)
+        else if (targetAngle < 1)
         {
             _turretAngle += AimSpeed;
         }
 
-        _rotationLabel.Text = "Target Angle: " + targetAngle + " Current Angle: " + _turretAngle;
-        _tankTurret.RotationDegrees = (float)_turretAngle;
+        _rotationLabel.Text = "Target Angle: " + _mouseAngle + " Current Angle: " + _tankTurret.RotationDegrees;
+        _tankTurret.RotationDegrees = (float)Math.Round(_turretAngle);
     }
 
     private void GetInput()
