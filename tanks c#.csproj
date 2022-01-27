@@ -3,7 +3,4 @@
     <TargetFramework>net472</TargetFramework>
     <RootNamespace>tanksc</RootNamespace>
   </PropertyGroup>
-  <ItemGroup>
-    <Folder Include="Scenes\Bullets" />
-  </ItemGroup>
 </Project>
