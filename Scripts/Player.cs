@@ -15,13 +15,15 @@ public class Player : KinematicBody2D
 
     private Sprite _tankTurret;
     private Sprite _tankBody;
+    private CollisionPolygon2D _tankBodyCollision;
     private Label _rotationLabel;
     private readonly PackedScene _bullet = GD.Load<PackedScene>("res://Scenes/Bullets/Basic.tscn");
 
     public override void _Ready()
     {
-        _tankTurret = (Sprite) GetNode("tankTurret");
+        _tankTurret = (Sprite) GetNode("CollisionShape2D/tankBody/tankTurret");
         _tankBody = (Sprite) GetNode("CollisionShape2D/tankBody");
+        _tankBodyCollision = (CollisionPolygon2D) GetNode("CollisionShape2D");
         _rotationLabel = (Label) GetNode("Label");
     }
 
@@ -76,8 +78,7 @@ public class Player : KinematicBody2D
             {
                 bodyAngle -= BodyRotateSpeed;
             }
-
-            _tankBody.RotationDegrees = (float) bodyAngle;
+            _tankBodyCollision.RotationDegrees = (float) bodyAngle;
         }
     }
 
@@ -92,6 +93,6 @@ public class Player : KinematicBody2D
     private void _on_player_ShootBullet(double x, double y, double rotation, string type)
     {
         var bulletInstance = _bullet.Instance();
-        AddChild(bulletInstance);
+        GetParent().AddChild(bulletInstance);
     }
 }
