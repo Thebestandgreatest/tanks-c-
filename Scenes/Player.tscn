@@ -17,8 +17,8 @@ z_as_relative = false
 texture = ExtResource( 3 )
 
 [node name="tankTurret" type="Sprite" parent="CollisionShape2D/tankBody"]
-scale = Vector2( 1, 1 )
 texture = ExtResource( 2 )
+offset = Vector2( 0, -200 )
 
 [node name="Camera2D" type="Camera2D" parent="."]
 
@@ -29,4 +29,4 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[connection signal="ShootBullet" from="." to="." method="_on_player_ShootBullet"]
+[connection signal="Shoot" from="." to="." method="_on_player_Shoot"]

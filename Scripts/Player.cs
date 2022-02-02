@@ -4,7 +4,7 @@ using Godot;
 public class Player : KinematicBody2D
 {
     [Signal]
-    delegate void ShootBullet(double x, double y, double rotation, string type);
+    delegate void Shoot(PackedScene bullet, float direction, Vector2 location);
     
     // load values from file or server for custom games
     private const int TankSpeed = 100;
@@ -56,8 +56,7 @@ public class Player : KinematicBody2D
 
         if (Input.IsActionPressed("fire"))
         {
-            EmitSignal("ShootBullet", (double) _tankTurret.GlobalPosition.x, (double) _tankTurret.GlobalPosition.y,
-                (double) _tankTurret.GlobalRotationDegrees, "basic");
+            EmitSignal(nameof(Shoot), _bullet, Rotation, Position);
         }
         _velocity = new Vector2();
         _velocity = Input.GetVector("ui_left", "ui_right", "ui_up", "ui_down") * TankSpeed;
@@ -90,9 +89,22 @@ public class Player : KinematicBody2D
         return diff < -180 ? diff + 360 : diff;
     }
 
-    private void _on_player_ShootBullet(double x, double y, double rotation, string type)
+    private void _on_player_Shoot(PackedScene bullet, float direction, Vector2 location)
     {
-        var bulletInstance = _bullet.Instance();
-        GetParent().AddChild(bulletInstance);
+        var bulletInstance = (Bullet) bullet.Instance();
+        AddChild(bulletInstance);
+        bulletInstance.Rotation = direction;
+        bulletInstance.Position = location;
+        bulletInstance.Velocity = bulletInstance.Velocity.Rotated(direction);
+    }
+}
+
+public class Bullet : Area2D
+{
+    public Vector2 Velocity = new Vector2();
+
+    public override void _PhysicsProcess(float delta)
+    {
+        Position += Velocity * delta;
     }
 }
