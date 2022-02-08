@@ -11,20 +11,21 @@ public class Player : KinematicBody2D
     private const double TurretRotateSpeed = 1;
     private const double BodyRotateSpeed = 2;
 
+    private Vector2 _turretOffset;
     private Vector2 _velocity;
 
     private Sprite _tankTurret;
     private Sprite _tankBody;
     private CollisionPolygon2D _tankBodyCollision;
     private Label _rotationLabel;
-    private readonly PackedScene _bullet = GD.Load<PackedScene>("res://Scenes/Bullets/Basic.tscn");
-
+    private PackedScene _bulletScene = (PackedScene) GD.Load("res://Scenes/Bullets/Basic.tscn");
     public override void _Ready()
     {
         _tankTurret = (Sprite) GetNode("CollisionShape2D/tankBody/tankTurret");
         _tankBody = (Sprite) GetNode("CollisionShape2D/tankBody");
         _tankBodyCollision = (CollisionPolygon2D) GetNode("CollisionShape2D");
         _rotationLabel = (Label) GetNode("Label");
+        _turretOffset = new Vector2(0, -80);
     }
 
     public override void _PhysicsProcess(float delta)
@@ -52,11 +53,9 @@ public class Player : KinematicBody2D
 
     private void GetInput()
     {
-        //todo shooting
-
         if (Input.IsActionPressed("fire"))
         {
-            EmitSignal(nameof(Shoot), _bullet, Rotation, Position);
+            EmitSignal(nameof(Shoot), _bulletScene, Rotation, Position);
         }
         _velocity = new Vector2();
         _velocity = Input.GetVector("ui_left", "ui_right", "ui_up", "ui_down") * TankSpeed;
@@ -91,20 +90,9 @@ public class Player : KinematicBody2D
 
     private void _on_player_Shoot(PackedScene bullet, float direction, Vector2 location)
     {
-        var bulletInstance = (Bullet) bullet.Instance();
-        AddChild(bulletInstance);
-        bulletInstance.Rotation = direction;
-        bulletInstance.Position = location;
-        bulletInstance.Velocity = bulletInstance.Velocity.Rotated(direction);
-    }
-}
-
-public class Bullet : Area2D
-{
-    public Vector2 Velocity = new Vector2();
-
-    public override void _PhysicsProcess(float delta)
-    {
-        Position += Velocity * delta;
+        KinematicBody2D bulletInstance = (KinematicBody2D) _bulletScene.Instance();
+        bulletInstance.RotationDegrees = _tankTurret.RotationDegrees;
+        bulletInstance.Position = Position + _turretOffset.Rotated(_tankTurret.Rotation);
+        GetParent().AddChild(bulletInstance);
     }
 }
