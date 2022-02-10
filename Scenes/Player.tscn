@@ -21,6 +21,7 @@ texture = ExtResource( 2 )
 offset = Vector2( 0, -200 )
 
 [node name="Camera2D" type="Camera2D" parent="."]
+current = true
 
 [node name="Label" type="Label" parent="."]
 margin_right = 40.0
@@ -28,5 +29,8 @@ margin_bottom = 14.0
 __meta__ = {
 "_edit_use_anchors_": false
 }
+
+[node name="Timer" type="Timer" parent="."]
+one_shot = true
 
 [connection signal="Shoot" from="." to="." method="_on_player_Shoot"]
