@@ -1,5 +1,4 @@
 using System;
-using System.Globalization;
 using Godot;
 
 // ReSharper disable once CheckNamespace
@@ -19,42 +18,65 @@ public class Player : KinematicBody2D
     private Vector2 _turretOffset;
     private Vector2 _velocity;
     private bool _canFire = true;
+    private double _bodyAngle;
+    private double _turretAngle;
     
     private Sprite _tankTurret;
     private CollisionPolygon2D _tankBodyCollision;
     private Label _rotationLabel;
     private readonly PackedScene _bulletScene = (PackedScene) GD.Load("res://Scenes/Bullets/Basic.tscn");
     private Timer _timer;
+    private KinematicBody2D _playerTwo;
+
+    [Puppet] public Vector2 PuppetPosition;
+    [Puppet] public Vector2 PuppetVelocity;
+    [Puppet] public float PuppetTurretRotation;
+    [Puppet] public float PuppetBodyRotation;
+    
     public override void _Ready()
     {
-        _tankTurret = (Sprite) GetNode("CollisionShape2D/tankBody/tankTurret");
-        _tankBodyCollision = (CollisionPolygon2D) GetNode("CollisionShape2D");
-        _rotationLabel = (Label) GetNode("Label");
+        _tankTurret = GetNode<Sprite>("CollisionShape2D/tankBody/tankTurret");
+        _tankBodyCollision = GetNode<CollisionPolygon2D>("CollisionShape2D");
+        _rotationLabel = GetNode<Label>("Label");
         _turretOffset = new Vector2(0, -80);
-        _timer = (Timer) GetNode("Timer");
+        _timer = GetNode<Timer>("Timer");
+        _playerTwo = GetNode<KinematicBody2D>("");
+
+        if (GetTree().IsNetworkServer())
+        {
+            _playerTwo.SetNetworkMaster(GetTree().GetNetworkConnectedPeers()[0]);
+        }
+        else
+        {
+            _playerTwo.SetNetworkMaster(GetTree().GetNetworkUniqueId());
+        }
+
+        GD.Print("Unique id: ", GetTree().GetNetworkUniqueId());
     }
 
     public override void _PhysicsProcess(float delta)
     {
-        GetInput();
-        Animate();
+        if (IsNetworkMaster())
+        {
+            GetInput();
+            Animate();
+        }
+        else
+        {
+            Position = PuppetPosition;
+            _velocity = PuppetVelocity;
+            _turretAngle = PuppetTurretRotation;
+            _bodyAngle = PuppetBodyRotation;
+        }
         _velocity = MoveAndSlide(_velocity);
 
-        //turret angle code
-        double mouseAngle = Math.Round(Mathf.Rad2Deg(_tankTurret.GlobalPosition.AngleToPoint(GetGlobalMousePosition()))) - 90;
-        double turretAngle = (float) Math.Round(_tankTurret.GlobalRotationDegrees);
-        double angleDifference = AngleDifference(mouseAngle, turretAngle);
-        if (angleDifference > 1)
+        if (!IsNetworkMaster())
         {
-            turretAngle -= TurretRotateSpeed;
+            PuppetPosition = Position;
+            PuppetVelocity = _velocity;
+            PuppetTurretRotation = (float)_turretAngle;
+            PuppetBodyRotation = (float)_bodyAngle;
         }
-        else if (angleDifference < 1)
-        {
-            turretAngle += TurretRotateSpeed;
-        }
-
-        //_rotationLabel.Text = "Target Angle: " + mouseAngle + ", Current Angle: " + turretAngle;
-        _tankTurret.GlobalRotationDegrees = (float) Math.Round(turretAngle);
     }
 
     private void GetInput()
@@ -65,31 +87,43 @@ public class Player : KinematicBody2D
         }
         _velocity = new Vector2();
         _velocity = Input.GetVector("ui_left", "ui_right", "ui_up", "ui_down") * TankSpeed;
+        Rset(nameof(PuppetPosition), Position);
+        Rset(nameof(PuppetVelocity), _velocity);
     }
 
     private void Animate()
     {
+        //body angle code
         double velocityAngle = Mathf.Round(Mathf.Rad2Deg(_velocity.Angle()) + 90);
-        double bodyAngle = Mathf.Round(_tankBodyCollision.GlobalRotationDegrees);
-        double angleDifference = AngleDifference(bodyAngle, velocityAngle);
+        _bodyAngle = Mathf.Round(_tankBodyCollision.GlobalRotationDegrees);
+        double bodyAngleDifference = AngleDifference(_bodyAngle, velocityAngle);
 
         if (_velocity == Vector2.Zero) return;
-        if (angleDifference > 1)
+        if (bodyAngleDifference > 1)
         {
-            bodyAngle += BodyRotateSpeed;
+            _bodyAngle += BodyRotateSpeed;
         }
-        else if (angleDifference < -1)
+        else if (bodyAngleDifference < -1)
         {
-            bodyAngle -= BodyRotateSpeed;
+            _bodyAngle -= BodyRotateSpeed;
         }
-        else
+        _tankBodyCollision.GlobalRotationDegrees = (float) _bodyAngle;
+        
+        //turret angle code
+        double mouseAngle = Math.Round(Mathf.Rad2Deg(_tankTurret.GlobalPosition.AngleToPoint(GetGlobalMousePosition()))) - 90;
+        _turretAngle = (float) Math.Round(_tankTurret.GlobalRotationDegrees);
+        double turretAngleDifference = AngleDifference(mouseAngle, _turretAngle);
+        if (turretAngleDifference > 1)
         {
-            return;
+            _turretAngle -= TurretRotateSpeed;
+        }
+        else if (turretAngleDifference < 1)
+        {
+            _turretAngle += TurretRotateSpeed;
         }
 
-        //_rotationLabel.Text = "Current Angle:" + bodyAngle + " Velocity Angle:" + velocityAngle +
-        //                      " Difference:" + angleDifference.ToString(CultureInfo.CurrentCulture);
-        _tankBodyCollision.GlobalRotationDegrees = (float) bodyAngle;
+        //_rotationLabel.Text = "Target Angle: " + mouseAngle + ", Current Angle: " + turretAngle;
+        _tankTurret.GlobalRotationDegrees = (float) Math.Round(_turretAngle);
     }
 
     private static double AngleDifference(double testAngle, double currentAngle)
