@@ -1,14 +1,16 @@
+using System;
 using Godot;
 
 public class Lobby : Panel
 {
     private const int DefaultPort = 8982;
-    private const int MaxClients = 1;
+    private const int MaxPlayers = 10;
 
     private LineEdit _address;
     private Button _hostButton;
     private Button _joinButton;
     private Label _status;
+    private LineEdit _name;
     private NetworkedMultiplayerENet _peer;
 
     public override void _Ready()
@@ -17,6 +19,7 @@ public class Lobby : Panel
         _hostButton = GetNode<Button>("Host");
         _joinButton = GetNode<Button>("Join");
         _status = GetNode<Label>("Status");
+        _name = GetNode<LineEdit>("Name");
     
         GetTree().Connect("network_peer_connected", this, nameof(PlayerConnected));
         GetTree().Connect("network_peer_disconnected", this, nameof(PlayerDisconnected));
@@ -31,24 +34,29 @@ public class Lobby : Panel
     private void HostGame()
     {
         var peer = new NetworkedMultiplayerENet();
-        peer.CreateServer(DefaultPort, MaxClients);
+        peer.CreateServer(DefaultPort, MaxPlayers);
         GetTree().NetworkPeer = peer;
-
-        GD.Print($"Hosting game at {_address.Text}:{DefaultPort}");
     }
 
     private void JoinGame()
     {
-        var clientPeer = new NetworkedMultiplayerENet();
-        var result = clientPeer.CreateClient(_address.Text, DefaultPort);
-        GetTree().NetworkPeer = clientPeer;
+        string ip = _address.Text;
+        if (!ip.IsValidIPAddress())
+        {
+            _status.Text = "Invalid ip address";
+            return;
+        }
         
-        GD.Print($"Connecting to game at {_address.Text}:{DefaultPort}");
+        var peer = new NetworkedMultiplayerENet();
+        peer.CreateClient(_address.Text, DefaultPort);
+        GetTree().NetworkPeer = peer;
     }
     
     private void PlayerConnected(int id)
     {
-        
+        var playerNode = ResourceLoader.Load<PackedScene>("res://Scenes/Levels/Level1.tscn").Instance();
+
+        GetTree().Root.AddChild(playerNode);
     }
 
     private void PlayerDisconnected(int id)
@@ -58,58 +66,17 @@ public class Lobby : Panel
 
     private void ConnectedOk()
     {
-        GD.Print("Connected");
-        InGame();
-        StartGame();
+        
     }
 
     private void ConnectedFail()
     {
         GetTree().NetworkPeer = null;
-        GD.PushWarning("Failed to Connect!");
-        InMenu();
+        GD.PushWarning("Failed to connect to server");
     }
 
     private void ServerDisconnected()
     {
-        GD.PushWarning("Disconnected from server");
-        InMenu();
-    }
-
-    [Remote]
-    private void StartGame()
-    {
-        SpawnPlayer(GetTree().GetNetworkUniqueId());
-    }
-
-    private void SpawnPlayer(int id)
-    {
-        var playerScene = ResourceLoader.Load<PackedScene>("res://Scenes/Player.tscn");
-
-        var playerNode = playerScene.Instance<Player>();
-        playerNode.Name = id.ToString();
-        playerNode.SetNetworkMaster(id);
-
-        AddChild(playerNode);
-    }
-
-    [Remote]
-    private void RemovePlayer(int id)
-    {
-        GetNode(id.ToString()).QueueFree();
-    }
-
-    private void InGame()
-    {
-        _hostButton.Disabled = true;
-        _joinButton.Disabled = true;
-        _address.Editable = false;
-    }
-
-    private void InMenu()
-    {
-        _hostButton.Disabled = false;
-        _joinButton.Disabled = false;
-        _address.Editable = false;
+        GD.PushWarning("Disconnected from the server");
     }
 }
