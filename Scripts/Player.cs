@@ -1,5 +1,4 @@
 using System;
-using System.Globalization;
 using Godot;
 
 // ReSharper disable once CheckNamespace

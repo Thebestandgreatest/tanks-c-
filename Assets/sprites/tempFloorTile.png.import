@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/BasicBulletTemp.png-3e4f754ef0c4f9505615523504dba9c2.stex"
+path="res://.import/tempFloorTile.png-b233bb1395b1fb332f2124cf4a1a8ea8.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/Sprites/BasicBulletTemp.png"
-dest_files=[ "res://.import/BasicBulletTemp.png-3e4f754ef0c4f9505615523504dba9c2.stex" ]
+source_file="res://Assets/Sprites/tempFloorTile.png"
+dest_files=[ "res://.import/tempFloorTile.png-b233bb1395b1fb332f2124cf4a1a8ea8.stex" ]
 
 [params]
 
