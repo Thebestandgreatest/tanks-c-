@@ -2,7 +2,7 @@
 
 [ext_resource path="res://Scripts/Lobby.cs" type="Script" id=1]
 
-[node name="Control" type="Control"]
+[node name="Lobby" type="Control"]
 anchor_right = 1.0
 anchor_bottom = 1.0
 __meta__ = {
@@ -10,71 +10,46 @@ __meta__ = {
 }
 
 [node name="Panel" type="Panel" parent="."]
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-margin_left = -128.0
-margin_top = -172.0
-margin_right = 192.0
-margin_bottom = 20.0
+margin_left = 416.0
+margin_top = 240.0
+margin_right = 608.0
+margin_bottom = 392.0
+rect_pivot_offset = Vector2( 96, 80 )
 script = ExtResource( 1 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
+[node name="Address" type="LineEdit" parent="Panel"]
+margin_left = 10.0
+margin_top = 50.0
+margin_right = 184.0
+margin_bottom = 74.0
+text = "127.0.0.1"
+placeholder_text = "i.e. 192.168.0.10"
+
 [node name="Address Label" type="Label" parent="Panel"]
 margin_left = 10.0
-margin_top = 64.0
-margin_right = 62.0
-margin_bottom = 78.0
-text = "Address:"
+margin_top = 30.0
+text = "Server Address"
+
+[node name="Host" type="Button" parent="Panel"]
+margin_left = 24.0
+margin_top = 90.0
+margin_right = 66.0
+margin_bottom = 110.0
+text = "Host"
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Address" type="LineEdit" parent="Panel"]
-anchor_top = 0.5
-anchor_right = 1.0
-anchor_bottom = 0.5
-margin_left = 10.0
-margin_top = -12.0
-margin_right = -10.0
-margin_bottom = 12.0
-text = "127.0.0.1"
-
-[node name="Host" type="Button" parent="Panel"]
-margin_left = 64.0
-margin_top = 128.0
-margin_right = 106.0
-margin_bottom = 148.0
-text = "Host"
-
 [node name="Join" type="Button" parent="Panel"]
-margin_left = 192.0
-margin_top = 128.0
-margin_right = 227.0
-margin_bottom = 148.0
+margin_left = 136.0
+margin_top = 90.0
+margin_right = 171.0
+margin_bottom = 110.0
 text = "Join"
 
 [node name="Status" type="Label" parent="Panel"]
-margin_top = 104.0
-margin_right = 320.0
-margin_bottom = 126.0
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="Name" type="LineEdit" parent="Panel"]
-margin_left = 10.0
-margin_top = 32.0
-margin_right = 310.0
-margin_bottom = 56.0
-placeholder_text = "Name to join with"
-
-[node name="Name Label" type="Label" parent="Panel"]
-margin_left = 10.0
-margin_top = 8.0
-margin_right = 52.0
-margin_bottom = 22.0
-text = "Name:"
+margin_left = 100.0
+margin_top = 120.0

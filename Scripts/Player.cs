@@ -28,11 +28,6 @@ public class Player : KinematicBody2D
     private Timer _timer;
     private KinematicBody2D _playerTwo;
 
-    [Puppet] public Vector2 PuppetPosition;
-    [Puppet] public Vector2 PuppetVelocity;
-    [Puppet] public float PuppetTurretRotation;
-    [Puppet] public float PuppetBodyRotation;
-    
     public override void _Ready()
     {
         _tankTurret = GetNode<Sprite>("CollisionShape2D/tankBody/tankTurret");
@@ -56,27 +51,10 @@ public class Player : KinematicBody2D
 
     public override void _PhysicsProcess(float delta)
     {
-        if (IsNetworkMaster())
-        {
-            GetInput();
-            Animate();
-        }
-        else
-        {
-            Position = PuppetPosition;
-            _velocity = PuppetVelocity;
-            _turretAngle = PuppetTurretRotation;
-            _bodyAngle = PuppetBodyRotation;
-        }
+        GetInput();
+        Animate();
         _velocity = MoveAndSlide(_velocity);
-
-        if (!IsNetworkMaster())
-        {
-            PuppetPosition = Position;
-            PuppetVelocity = _velocity;
-            PuppetTurretRotation = (float)_turretAngle;
-            PuppetBodyRotation = (float)_bodyAngle;
-        }
+        
     }
 
     private void GetInput()
@@ -87,8 +65,6 @@ public class Player : KinematicBody2D
         }
         _velocity = new Vector2();
         _velocity = Input.GetVector("ui_left", "ui_right", "ui_up", "ui_down") * TankSpeed;
-        Rset(nameof(PuppetPosition), Position);
-        Rset(nameof(PuppetVelocity), _velocity);
     }
 
     private void Animate()
