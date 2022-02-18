@@ -5,10 +5,8 @@
 [node name="level1" type="Node2D"]
 
 [node name="TextureRect" type="TextureRect" parent="."]
-margin_left = -513.0
-margin_top = -299.0
-margin_right = 510.0
-margin_bottom = 331.0
+margin_right = 1023.0
+margin_bottom = 630.0
 texture = ExtResource( 1 )
 expand = true
 stretch_mode = 2

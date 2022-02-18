@@ -38,6 +38,11 @@ public class Lobby : Panel
         var level = ResourceLoader.Load<PackedScene>("res://Scenes/Levels/Level1.tscn").Instance();
         GetTree().Root.AddChild(level);
         Hide();
+        
+        var playerScene = ResourceLoader.Load<PackedScene>("res://Scenes/Player.tscn");
+        var player = (Player) playerScene.Instance();
+        player.SetNetworkMaster(id);
+        GetTree().Root.AddChild(player);
     }
 
     private void PlayerDisconnected(int id)
@@ -55,15 +60,11 @@ public class Lobby : Panel
         _status.Text = "Couldn't Connect to server";
 
         GetTree().NetworkPeer = null;
-        _hostButton.Disabled = false;
-        _joinButton.Disabled = false;
     }
 
     private void ServerDisconnected()
     {
         GetTree().NetworkPeer = null;
-        _hostButton.Disabled = false;
-        _joinButton.Disabled = false;
     }
 
     private void OnHostPressed()
@@ -79,11 +80,8 @@ public class Lobby : Panel
 
         GetTree().NetworkPeer = _peer;
         var level = ResourceLoader.Load<PackedScene>("res://Scenes/Levels/Level1.tscn").Instance();
-        var player = ResourceLoader.Load<PackedScene>("res://Scenes/Player.tscn").Instance();
-
         GetTree().Root.AddChild(level);
         Hide();
-        //GetTree().Root.AddChild(player);
     }
 
     private void OnJoinPressed()
