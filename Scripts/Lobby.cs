@@ -1,4 +1,5 @@
 using Godot;
+using Godot.Collections;
 
 // ReSharper disable once CheckNamespace
 // ReSharper disable once UnusedType.Global
@@ -12,6 +13,10 @@ public class Lobby : Panel
     private Button _joinButton;
     private Label _status;
     private NetworkedMultiplayerENet _peer;
+    private LineEdit _name;
+
+    private Dictionary<int, string> _players = new Dictionary<int, string>();
+    private const string PlayerName = "one";
 
     public override void _Ready()
     {
@@ -19,6 +24,7 @@ public class Lobby : Panel
         _hostButton = GetNode<Button>("Host");
         _joinButton = GetNode<Button>("Join");
         _status = GetNode<Label>("Status");
+        _name = GetNode<LineEdit>("Name");
         
         // button signals
         _hostButton.Connect("pressed", this, nameof(OnHostPressed));
@@ -32,69 +38,38 @@ public class Lobby : Panel
         GetTree().Connect("server_disconnected", this, nameof(ServerDisconnected));
     }
 
-    private void PlayerConnected(int id)
-    {
-        // start game
-        var level = ResourceLoader.Load<PackedScene>("res://Scenes/Levels/Level1.tscn").Instance();
-        GetTree().Root.AddChild(level);
-        Hide();
-        
-        var playerScene = ResourceLoader.Load<PackedScene>("res://Scenes/Player.tscn");
-        var player = (Player) playerScene.Instance();
-        player.SetNetworkMaster(id);
-        GetTree().Root.AddChild(player);
-    }
-
-    private void PlayerDisconnected(int id)
-    {
-        // not used currently
-    }
-
-    private void ConnectedOk()
-    {
-        // not used currently
-    }
-
-    private void ConnectedFail()
-    {
-        _status.Text = "Couldn't Connect to server";
-
-        GetTree().NetworkPeer = null;
-    }
-
-    private void ServerDisconnected()
-    {
-        GetTree().NetworkPeer = null;
-    }
-
     private void OnHostPressed()
     {
-        _peer = new NetworkedMultiplayerENet();
-
-        Error err = _peer.CreateServer(DefaultPort, MaxPlayers);
-        if (err != Error.Ok)
-        {
-            _status.Text = "Couldn't create a server";
-            return;
-        }
-
-        GetTree().NetworkPeer = _peer;
-        var level = ResourceLoader.Load<PackedScene>("res://Scenes/Levels/Level1.tscn").Instance();
-        GetTree().Root.AddChild(level);
-        Hide();
+        
     }
 
     private void OnJoinPressed()
     {
-        string ip = _address.Text;
-        if (!ip.IsValidIPAddress())
-        {
-            _status.Text = "Invalid IP address";
-            return;
-        }
+        
+    }
 
-        _peer = new NetworkedMultiplayerENet();
-        _peer.CreateClient(ip, DefaultPort);
-        GetTree().NetworkPeer = _peer;
+    private void PlayerConnected()
+    {
+        
+    }
+
+    private void PlayerDisconnected()
+    {
+        
+    }
+
+    private void ConnectedOk()
+    {
+        
+    }
+
+    private void ConnectedFail()
+    {
+        
+    }
+
+    private void ServerDisconnected()
+    {
+        
     }
 }

@@ -1,6 +1,6 @@
 using Godot;
-using System;
-
+// ReSharper disable once CheckNamespace
+// ReSharper disable once UnusedType.Global
 public class Basic : KinematicBody2D
 {
     private const int Speed = 200;
