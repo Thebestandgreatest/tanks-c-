@@ -8,15 +8,19 @@ public class Lobby : Panel
     private const int DefaultPort = 5672;
     private const int MaxPlayers = 10;
 
+    private readonly Dictionary<int, string> _players = new Dictionary<int, string>();
+
     private LineEdit _address;
     private Button _hostButton;
     private Button _joinButton;
-    private Label _status;
-    private NetworkedMultiplayerENet _peer;
     private LineEdit _name;
+    private NetworkedMultiplayerENet _peer;
 
-    private Dictionary<int, string> _players = new Dictionary<int, string>();
-    private const string PlayerName = "one";
+    private Panel _playerPanel;
+    private Button _startButton;
+    private Label _status;
+    private ItemList _teamAList;
+    private ItemList _teamBList;
 
     public override void _Ready()
     {
@@ -25,11 +29,17 @@ public class Lobby : Panel
         _joinButton = GetNode<Button>("Join");
         _status = GetNode<Label>("Status");
         _name = GetNode<LineEdit>("Name");
-        
+
+        _playerPanel = GetParent().GetNode<Panel>("Players");
+        _teamAList = _playerPanel.GetNode<ItemList>("Team A List");
+        _teamBList = _playerPanel.GetNode<ItemList>("Team B List");
+        _startButton = _playerPanel.GetNode<Button>("Start");
+
         // button signals
         _hostButton.Connect("pressed", this, nameof(OnHostPressed));
         _joinButton.Connect("pressed", this, nameof(OnJoinPressed));
-        
+        _startButton.Connect("pressed", this, nameof(StartGame));
+
         // multiplayer signals
         GetTree().Connect("network_peer_connected", this, nameof(PlayerConnected));
         GetTree().Connect("network_peer_disconnected", this, nameof(PlayerDisconnected));
@@ -40,36 +50,126 @@ public class Lobby : Panel
 
     private void OnHostPressed()
     {
+        if (_name.Text == "")
+        {
+            _status.Text = "Invalid Name";
+            return;
+        }
+
+        Hide();
+        _playerPanel.Show();
+        _status.Text = "";
         
+        HostGame();
+        RefreshLobby();
     }
 
     private void OnJoinPressed()
     {
+        if (_name.Text == "")
+        {
+            _status.Text = "Invalid Name";
+            return;
+        }
         
+        if (!_address.Text.IsValidIPAddress())
+        {
+            _status.Text = "Invalid IP address";
+            return;
+        }
+
+        _status.Text = "";
+        _hostButton.Disabled = true;
+        _joinButton.Disabled = true;
+        _name.Editable = false;
+        _address.Editable = false;
+
+        JoinGame();
     }
 
-    private void PlayerConnected()
+    private void PlayerConnected(int id)
     {
-        
+        RpcId(id, nameof(RegisterPlayer), _name.Text);
     }
 
-    private void PlayerDisconnected()
+    private void PlayerDisconnected(int id)
     {
-        
+        if (GetTree().IsNetworkServer())
+            EndGame();
+        else
+            UnregisterPlayer(id);
     }
 
     private void ConnectedOk()
     {
-        
+        Hide();
+        _playerPanel.Show();
     }
 
     private void ConnectedFail()
     {
-        
+        GetTree().NetworkPeer = null;
+        _hostButton.Disabled = false;
+        _joinButton.Disabled = false;
+        _address.Editable = true;
+        _name.Editable = true;
     }
 
     private void ServerDisconnected()
     {
+        EndGame();
+    }
+
+    private void UnregisterPlayer(int id)
+    {
+        if (_players.ContainsKey(id)) _players.Remove(id);
+    }
+
+    private void HostGame()
+    {
+        _peer = new NetworkedMultiplayerENet();
+        _peer.CreateServer(DefaultPort, MaxPlayers);
+        GetTree().NetworkPeer = _peer;
+    }
+
+    private void JoinGame()
+    {
+        _peer = new NetworkedMultiplayerENet();
+        _peer.CreateClient(_address.Text, DefaultPort);
+        GetTree().NetworkPeer = _peer;
+    }
+
+    private void EndGame()
+    {
+        if (HasNode("/root/level")) GetNode("/root/level").QueueFree();
+
+        _hostButton.Disabled = false;
+        _joinButton.Disabled = false;
+        _address.Editable = true;
+        _name.Editable = true;
+        Show();
+    }
+
+    private void RefreshLobby()
+    {
+        _teamAList.Clear();
+        _teamBList.Clear();
+        _teamAList.AddItem(_name.Text + " (You)");
+        foreach (var p in _players) _teamAList.AddItem(p.Value);
+
+        _startButton.Disabled = !GetTree().IsNetworkServer();
+    }
+
+    private void StartGame()
+    {
         
+    }
+
+    [Remote]
+    private void RegisterPlayer(string playerName)
+    {
+        int id = GetTree().GetRpcSenderId();
+        _players[id] = playerName;
+        RefreshLobby();
     }
 }

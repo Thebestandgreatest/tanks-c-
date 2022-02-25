@@ -1,4 +1,5 @@
 using Godot;
+
 // ReSharper disable once CheckNamespace
 // ReSharper disable once UnusedType.Global
 public class Basic : KinematicBody2D
@@ -6,10 +7,10 @@ public class Basic : KinematicBody2D
     private const int Speed = 200;
 
     private Vector2 _velocity;
-    
+
     public override void _PhysicsProcess(float delta)
     {
-        _velocity = new Vector2(Speed, 0).Rotated(Rotation - Mathf.Pi/2);
+        _velocity = new Vector2(Speed, 0).Rotated(Rotation - Mathf.Pi / 2);
         _velocity = MoveAndSlide(_velocity);
     }
 }
