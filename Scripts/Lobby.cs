@@ -123,6 +123,7 @@ public class Lobby : Panel
     private void UnregisterPlayer(int id)
     {
         if (_players.ContainsKey(id)) _players.Remove(id);
+        RefreshLobby();
     }
 
     private void HostGame()
