@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Godot;
 using Godot.Collections;
 
@@ -8,7 +9,7 @@ public class Lobby : Panel
     private const int DefaultPort = 5672;
     private const int MaxPlayers = 10;
 
-    private readonly Dictionary<int, string> _players = new Dictionary<int, string>();
+    private readonly Godot.Collections.Dictionary<int, string> _players = new Godot.Collections.Dictionary<int, string>();
 
     private LineEdit _address;
     private Button _hostButton;
@@ -86,6 +87,16 @@ public class Lobby : Panel
 
         JoinGame();
     }
+    
+    private void StartGame()
+    {
+        Godot.Collections.Dictionary<int, string> spawnPoints = new Godot.Collections.Dictionary<int, string>();
+        
+        foreach (var p in _players)
+        {
+            RpcId(p.Key, nameof(PreloadGame), spawnPoints);
+        }
+    }
 
     private void PlayerConnected(int id)
     {
@@ -161,16 +172,22 @@ public class Lobby : Panel
         _startButton.Disabled = !GetTree().IsNetworkServer();
     }
 
-    private void StartGame()
-    {
-        
-    }
-
     [Remote]
     private void RegisterPlayer(string playerName)
     {
         int id = GetTree().GetRpcSenderId();
         _players[id] = playerName;
         RefreshLobby();
+    }
+
+    [Remote]
+    private void PreloadGame(Dictionary spawnPoints)
+    {
+        Node level = ResourceLoader.Load<PackedScene>("res://Scenes/Levels/Level A.tscn").Instance();
+        GetTree().Root.AddChild(level);
+        _playerPanel.Hide();
+
+        Node playerScene = ResourceLoader.Load<PackedScene>("res://Scenes/Player.tscn").Instance();
+        
     }
 }
