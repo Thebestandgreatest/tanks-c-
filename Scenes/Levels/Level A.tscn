@@ -2,7 +2,7 @@
 
 [ext_resource path="res://icon.png" type="Texture" id=1]
 
-[node name="level1" type="Node2D"]
+[node name="Level" type="Node2D"]
 
 [node name="TextureRect" type="TextureRect" parent="."]
 margin_right = 1023.0

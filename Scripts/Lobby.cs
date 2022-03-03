@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Drawing.Printing;
 using Godot;
 using Godot.Collections;
 
@@ -89,12 +90,10 @@ public class Lobby : Panel
     }
     
     private void StartGame()
-    {
-        Godot.Collections.Dictionary<int, string> spawnPoints = new Godot.Collections.Dictionary<int, string>();
-        
+    {        
         foreach (var p in _players)
         {
-            RpcId(p.Key, nameof(PreloadGame), spawnPoints);
+            RpcId(p.Key, nameof(PreloadGame));
         }
     }
 
@@ -167,7 +166,10 @@ public class Lobby : Panel
         _teamAList.Clear();
         _teamBList.Clear();
         _teamAList.AddItem(_name.Text + " (You)");
-        foreach (var p in _players) _teamAList.AddItem(p.Value);
+        foreach (var p in _players)
+        {
+            _teamAList.AddItem(p.Value);
+        }
 
         _startButton.Disabled = !GetTree().IsNetworkServer();
     }
@@ -181,13 +183,24 @@ public class Lobby : Panel
     }
 
     [Remote]
-    private void PreloadGame(Dictionary spawnPoints)
+    private void PreloadGame()
     {
         Node level = ResourceLoader.Load<PackedScene>("res://Scenes/Levels/Level A.tscn").Instance();
         GetTree().Root.AddChild(level);
         _playerPanel.Hide();
 
-        Node playerScene = ResourceLoader.Load<PackedScene>("res://Scenes/Player.tscn").Instance();
-        
+        PackedScene playerScene = ResourceLoader.Load<PackedScene>("res://Scenes/Player.tscn");
+        foreach (var p in _players)
+        {
+            KinematicBody2D player = playerScene.Instance<KinematicBody2D>();
+            player.Name = p.Value;
+            player.Position = new Vector2(p.Key * 500,0);
+            player.SetNetworkMaster(p.Key);
+
+            // todo: player names
+
+            
+            GetTree().Root.GetNode("Level A").AddChild(player);
+        }
     }
 }
