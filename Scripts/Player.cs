@@ -1,8 +1,9 @@
 using System;
 using Godot;
 
+
 // ReSharper disable once CheckNamespace
-// ReSharper disable once UnusedType.Global
+// ReSharper disable once ClassNeverInstantiated.Global
 public class Player : KinematicBody2D
 {
     // load values from file or server for custom games
@@ -10,9 +11,8 @@ public class Player : KinematicBody2D
     private const double TurretRotateSpeed = 1;
     private const double BodyRotateSpeed = 2;
     private const int TankReloadMultiplier = 1;
-    private const int BombIndex = 0;
-    
-    private readonly PackedScene _bulletScene = (PackedScene) GD.Load("res://Scenes/Bullets/Basic.tscn");
+
+    private readonly PackedScene _bulletScene = GD.Load<PackedScene>("res://Scenes/Bullets/Basic.tscn");
     private double _bodyAngle;
     private bool _canFire = true;
     private CollisionPolygon2D _tankBodyCollision;
@@ -27,7 +27,7 @@ public class Player : KinematicBody2D
     [Puppet] private Vector2 puppetPosition;
     [Puppet] private float puppetBodyRotation;
     [Puppet] private float puppetTurretRotation;
-
+    [Puppet] private Vector2 puppetVelocity;
     public override void _Ready()
     {
         _tankTurret = GetNode<Sprite>("CollisionShape2D/tankBody/tankTurret");
@@ -38,40 +38,40 @@ public class Player : KinematicBody2D
 
     public override void _PhysicsProcess(float delta)
     {
-        GetInput();
-        _velocity = MoveAndSlide(_velocity);
-    }
-
-    private void GetInput()
-    {
-        _velocity = new Vector2();
         if (IsNetworkMaster())
         {
-            Animate();
-            _velocity = Input.GetVector("ui_left", "ui_right", "ui_up", "ui_down") * TankSpeed;
-            
-            if (Input.IsActionPressed("fire") && _canFire)
-            {
-                string bombName = Name + BombIndex;
-                Vector2 bombPosition = Position;
-                Rpc(nameof(FireBullet), bombName, bombPosition, GetTree().GetNetworkUniqueId());
-            }
-
-            Rset(nameof(puppetPosition), Position);
-            Rset(nameof(puppetBodyRotation), _tankBodyCollision.RotationDegrees);
-            Rset(nameof(puppetTurretRotation), _tankTurret.RotationDegrees);
+            GetInput();
         }
         else
         {
             Position = puppetPosition;
-            _tankBodyCollision.RotationDegrees = puppetBodyRotation;
-            _tankTurret.RotationDegrees = puppetTurretRotation;
+            _velocity = puppetVelocity;
         }
+        
+        _velocity = MoveAndSlide(_velocity);
 
         if (!IsNetworkMaster())
         {
             puppetPosition = Position;
         }
+    }
+
+    private void GetInput()
+    {
+        _velocity = new Vector2();
+        _velocity = Input.GetVector("ui_left", "ui_right", "ui_up", "ui_down") * TankSpeed;
+
+        Rset(nameof(puppetPosition), Position);
+        Rset(nameof(puppetVelocity), _velocity);
+
+        // if (Input.IsActionPressed("fire") && _canFire)
+        // {
+        //     string bulletName = Name + BombIndex;
+        //     Vector2 bulletPosition = Position;
+        //     Rpc(nameof(FireBullet),_bulletScene, bulletName, bulletPosition, GetTree().GetNetworkUniqueId());
+        // }
+
+
     }
 
     private void Animate()
@@ -107,26 +107,11 @@ public class Player : KinematicBody2D
         return diff < -180 ? diff + 360 : diff;
     }
 
-    // ReSharper disable once UnusedMember.Local
-    private async void _on_player_Shoot(PackedScene bullet, float rotation, float bodyRotation, Vector2 position)
-    {
-        KinematicBody2D bulletInstance = (KinematicBody2D) bullet.Instance();
-        rotation += bodyRotation;
-        bulletInstance.RotationDegrees = rotation;
-        bulletInstance.Position = position + _turretOffset.Rotated(Mathf.Deg2Rad(rotation));
-        GetParent().AddChild(bulletInstance);
-
-        _canFire = false;
-        _timer.Start((float) 0.5 * TankReloadMultiplier);
-        await ToSignal(_timer, "timeout");
-        _canFire = true;
-    }
-
     [RemoteSync]
-    private async void FireBullet(PackedScene bullet, string bombName, Vector2 position, float rotation, float bodyRotation)
+    private async void FireBullet(PackedScene bullet, string bulletName, Vector2 position, float rotation, float bodyRotation)
     {
         KinematicBody2D bulletInstance = bullet.Instance<KinematicBody2D>();
-        bulletInstance.Name = bombName;
+        bulletInstance.Name = bulletName;
         rotation += bodyRotation;
         bulletInstance.RotationDegrees = rotation;
         bulletInstance.Position = position + _turretOffset.Rotated(Mathf.Deg2Rad(rotation));

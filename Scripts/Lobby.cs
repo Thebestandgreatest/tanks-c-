@@ -1,7 +1,5 @@
 using System.Collections.Generic;
-using System.Drawing.Printing;
 using Godot;
-using Godot.Collections;
 
 // ReSharper disable once CheckNamespace
 // ReSharper disable once UnusedType.Global
@@ -16,7 +14,6 @@ public class Lobby : Panel
     private Button _hostButton;
     private Button _joinButton;
     private LineEdit _name;
-    private NetworkedMultiplayerENet _peer;
 
     private Panel _playerPanel;
     private Button _startButton;
@@ -62,7 +59,11 @@ public class Lobby : Panel
         _playerPanel.Show();
         _status.Text = "";
         
-        HostGame();
+        NetworkedMultiplayerENet peer = new NetworkedMultiplayerENet();
+        peer.CreateServer(DefaultPort, MaxPlayers);
+        GetTree().NetworkPeer = peer;
+        GD.Print("hosting server");
+        
         RefreshLobby();
     }
 
@@ -86,14 +87,22 @@ public class Lobby : Panel
         _name.Editable = false;
         _address.Editable = false;
 
-        JoinGame();
+        NetworkedMultiplayerENet peer = new NetworkedMultiplayerENet();
+        peer.CreateClient(_address.Text, DefaultPort);
+        GetTree().NetworkPeer = peer;
     }
     
     private void StartGame()
-    {        
-        foreach (var p in _players)
+    {
+        int id = GetTree().GetRpcSenderId();
+        _players[id] = _name.Text;
+        GD.Print(_players);
+        
+        LoadGame();
+        
+        foreach (KeyValuePair<int, string> p in _players)
         {
-            RpcId(p.Key, nameof(PreloadGame));
+            RpcId(p.Key, nameof(LoadGame));
         }
     }
 
@@ -136,20 +145,6 @@ public class Lobby : Panel
         RefreshLobby();
     }
 
-    private void HostGame()
-    {
-        _peer = new NetworkedMultiplayerENet();
-        _peer.CreateServer(DefaultPort, MaxPlayers);
-        GetTree().NetworkPeer = _peer;
-    }
-
-    private void JoinGame()
-    {
-        _peer = new NetworkedMultiplayerENet();
-        _peer.CreateClient(_address.Text, DefaultPort);
-        GetTree().NetworkPeer = _peer;
-    }
-
     private void EndGame()
     {
         if (HasNode("/root/level")) GetNode("/root/level").QueueFree();
@@ -183,7 +178,7 @@ public class Lobby : Panel
     }
 
     [Remote]
-    private void PreloadGame()
+    private void LoadGame()
     {
         Node level = ResourceLoader.Load<PackedScene>("res://Scenes/Levels/Level A.tscn").Instance();
         GetTree().Root.AddChild(level);
@@ -198,9 +193,8 @@ public class Lobby : Panel
             player.SetNetworkMaster(p.Key);
 
             // todo: player names
-
             
-            GetTree().Root.GetNode("Level A").AddChild(player);
+            GetTree().Root.GetNode("Level").AddChild(player);
         }
     }
 }
