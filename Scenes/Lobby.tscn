@@ -1,13 +1,9 @@
-[gd_scene load_steps=2 format=2]
+[gd_scene load_steps=3 format=2]
 
 [ext_resource path="res://Scripts/Lobby.cs" type="Script" id=1]
+[ext_resource path="res://Scenes/Levels/Level A.tscn" type="PackedScene" id=2]
 
-[node name="Lobby" type="Control"]
-anchor_right = 1.0
-anchor_bottom = 1.0
-__meta__ = {
-"_edit_use_anchors_": false
-}
+[node name="Lobby" type="Node2D"]
 
 [node name="Panel" type="Panel" parent="."]
 margin_left = 384.0
@@ -27,6 +23,8 @@ margin_right = 184.0
 margin_bottom = 120.0
 text = "127.0.0.1"
 placeholder_text = "i.e. 192.168.0.10"
+caret_blink = true
+caret_blink_speed = 0.5
 
 [node name="Address Label" type="Label" parent="Panel"]
 margin_left = 10.0
@@ -61,6 +59,8 @@ margin_left = 10.0
 margin_top = 24.0
 margin_right = 184.0
 margin_bottom = 48.0
+caret_blink = true
+caret_blink_speed = 0.5
 
 [node name="Name Label" type="Label" parent="Panel"]
 margin_left = 10.0
@@ -124,3 +124,5 @@ margin_right = 576.0
 margin_bottom = 38.0
 text = "Team B"
 align = 1
+
+[node name="Level" parent="." instance=ExtResource( 2 )]

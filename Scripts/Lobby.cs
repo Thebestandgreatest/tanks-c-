@@ -1,4 +1,5 @@
-using System.Collections.Generic;
+using System.Linq;
+using System.Net.NetworkInformation;
 using Godot;
 
 // ReSharper disable once CheckNamespace
@@ -8,12 +9,14 @@ public class Lobby : Panel
     private const int DefaultPort = 5672;
     private const int MaxPlayers = 10;
 
-    private readonly Godot.Collections.Dictionary<int, string> _players = new Godot.Collections.Dictionary<int, string>();
+    private readonly Godot.Collections.Dictionary<int, string> _players =
+        new Godot.Collections.Dictionary<int, string>();
 
     private LineEdit _address;
     private Button _hostButton;
     private Button _joinButton;
     private LineEdit _name;
+    private Node2D _level;
 
     private Panel _playerPanel;
     private Button _startButton;
@@ -23,6 +26,9 @@ public class Lobby : Panel
 
     public override void _Ready()
     {
+        _level = GetTree().Root.GetNode<Node2D>("Level");
+        _level.Visible = false;
+        
         _address = GetNode<LineEdit>("Address");
         _hostButton = GetNode<Button>("Host");
         _joinButton = GetNode<Button>("Join");
@@ -47,63 +53,43 @@ public class Lobby : Panel
         GetTree().Connect("server_disconnected", this, nameof(ServerDisconnected));
     }
 
-    private void OnHostPressed()
+    public void OnHostPressed()
     {
-        if (_name.Text == "")
-        {
-            _status.Text = "Invalid Name";
-            return;
-        }
-
-        Hide();
-        _playerPanel.Show();
-        _status.Text = "";
-        
+        _level.Visible = true;
         NetworkedMultiplayerENet peer = new NetworkedMultiplayerENet();
-        peer.CreateServer(DefaultPort, MaxPlayers);
+        peer.CreateServer(DefaultPort, 32);
         GetTree().NetworkPeer = peer;
-        GD.Print("hosting server");
-        
-        RefreshLobby();
+        GD.Print("Hosting Server");
+
+        //TODO: validate name
+        StartGame();
     }
 
-    private void OnJoinPressed()
+    public void OnJoinPressed()
     {
-        if (_name.Text == "")
-        {
-            _status.Text = "Invalid Name";
-            return;
-        }
-        
-        if (!_address.Text.IsValidIPAddress())
-        {
-            _status.Text = "Invalid IP address";
-            return;
-        }
+        _level.Visible = true;
+        string address = _address.Text;
 
-        _status.Text = "";
-        _hostButton.Disabled = true;
-        _joinButton.Disabled = true;
-        _name.Editable = false;
-        _address.Editable = false;
+        //TODO: validate ip
+        //TODO: validate name
 
-        NetworkedMultiplayerENet peer = new NetworkedMultiplayerENet();
-        peer.CreateClient(_address.Text, DefaultPort);
-        GetTree().NetworkPeer = peer;
+        NetworkedMultiplayerENet clientPeer = new NetworkedMultiplayerENet();
+        Error result = clientPeer.CreateClient(address, DefaultPort);
+
+        GetTree().NetworkPeer = clientPeer;
     }
-    
-    private void StartGame()
+
+    public void LeaveGame()
     {
-        int id = GetTree().GetRpcSenderId();
-        _players[id] = _name.Text;
-        GD.Print(_players);
-        
-        LoadGame();
-        
-        foreach (KeyValuePair<int, string> p in _players)
+        foreach (var player in _players)
         {
-            RpcId(p.Key, nameof(LoadGame));
+            GetNode(player.Key.ToString()).QueueFree();
         }
+        _players.Clear();
+        GetNode(GetTree().GetNetworkUniqueId().ToString()).QueueFree();
+        Rpc(nameof(RemovePlayer), GetTree().GetNetworkUniqueId());
+        ((NetworkedMultiplayerENet)GetTree().NetworkPeer).CloseConnection();
+        GetTree().NetworkPeer = null;
     }
 
     private void PlayerConnected(int id)
@@ -113,49 +99,61 @@ public class Lobby : Panel
 
     private void PlayerDisconnected(int id)
     {
-        if (GetTree().IsNetworkServer())
-            EndGame();
-        else
-            UnregisterPlayer(id);
+        RemovePlayer(id);
     }
 
     private void ConnectedOk()
     {
-        Hide();
-        _playerPanel.Show();
+        StartGame();
     }
 
     private void ConnectedFail()
     {
         GetTree().NetworkPeer = null;
-        _hostButton.Disabled = false;
-        _joinButton.Disabled = false;
-        _address.Editable = true;
-        _name.Editable = true;
     }
 
     private void ServerDisconnected()
     {
-        EndGame();
+        LeaveGame();
     }
 
-    private void UnregisterPlayer(int id)
+    [Remote]
+    private void RegisterPlayer(string playerName)
     {
-        if (_players.ContainsKey(id)) _players.Remove(id);
-        RefreshLobby();
+        int id = GetTree().GetRpcSenderId();
+        _players.Add(id, playerName);
+
+        SpawnPlayer(id, playerName);
     }
 
-    private void EndGame()
+    [Remote]
+    public void StartGame()
     {
-        if (HasNode("/root/level")) GetNode("/root/level").QueueFree();
-
-        _hostButton.Disabled = false;
-        _joinButton.Disabled = false;
-        _address.Editable = true;
-        _name.Editable = true;
-        Show();
+        SpawnPlayer(GetTree().GetNetworkUniqueId(), _name.Text);
     }
 
+    [Remote]
+    private void SpawnPlayer(int id, string playerName)
+    {
+        Player playerNode = ResourceLoader.Load<PackedScene>("res://Scenes/Player.tscn").Instance<Player>();
+        playerNode.Name = id.ToString();
+        playerNode.SetNetworkMaster(id);
+
+        playerNode.Position = new Vector2(500, 250 * id);
+
+        GetTree().Root.GetNode("Level").AddChild(playerNode);
+    }
+
+    [Remote]
+    private void RemovePlayer(int id)
+    {
+        if (_players.ContainsKey(id))
+        {
+            _players.Remove(id);
+            GetNode(id.ToString()).QueueFree();
+        }
+    }
+    
     private void RefreshLobby()
     {
         _teamAList.Clear();
@@ -167,34 +165,5 @@ public class Lobby : Panel
         }
 
         _startButton.Disabled = !GetTree().IsNetworkServer();
-    }
-
-    [Remote]
-    private void RegisterPlayer(string playerName)
-    {
-        int id = GetTree().GetRpcSenderId();
-        _players[id] = playerName;
-        RefreshLobby();
-    }
-
-    [Remote]
-    private void LoadGame()
-    {
-        Node level = ResourceLoader.Load<PackedScene>("res://Scenes/Levels/Level A.tscn").Instance();
-        GetTree().Root.AddChild(level);
-        _playerPanel.Hide();
-
-        PackedScene playerScene = ResourceLoader.Load<PackedScene>("res://Scenes/Player.tscn");
-        foreach (var p in _players)
-        {
-            KinematicBody2D player = playerScene.Instance<KinematicBody2D>();
-            player.Name = p.Value;
-            player.Position = new Vector2(p.Key * 500,0);
-            player.SetNetworkMaster(p.Key);
-
-            // todo: player names
-            
-            GetTree().Root.GetNode("Level").AddChild(player);
-        }
     }
 }
