@@ -24,10 +24,10 @@ public class Player : KinematicBody2D
     private Vector2 _turretOffset;
     private Vector2 _velocity;
 
-    [Puppet] private Vector2 puppetPosition;
-    [Puppet] private float puppetBodyRotation;
-    [Puppet] private float puppetTurretRotation;
-    [Puppet] private Vector2 puppetVelocity;
+    [Puppet] private Vector2 _puppetPosition;
+    [Puppet] private float _puppetBodyRotation;
+    [Puppet] private float _puppetTurretRotation;
+    [Puppet] private Vector2 _puppetVelocity;
     public override void _Ready()
     {
         _tankTurret = GetNode<Sprite>("CollisionShape2D/tankBody/tankTurret");
@@ -44,15 +44,20 @@ public class Player : KinematicBody2D
         }
         else
         {
-            Position = puppetPosition;
-            _velocity = puppetVelocity;
+            Position = _puppetPosition;
+            _velocity = _puppetVelocity;
+            _tankTurret.RotationDegrees = _puppetTurretRotation;
+            _tankBodyCollision.RotationDegrees = _puppetBodyRotation;
         }
         
         _velocity = MoveAndSlide(_velocity);
 
         if (!IsNetworkMaster())
         {
-            puppetPosition = Position;
+            _puppetPosition = Position;
+            _puppetVelocity = _velocity;
+            _puppetTurretRotation = _tankTurret.RotationDegrees;
+            _puppetBodyRotation = _tankBodyCollision.RotationDegrees;
         }
     }
 
@@ -61,8 +66,8 @@ public class Player : KinematicBody2D
         _velocity = new Vector2();
         _velocity = Input.GetVector("ui_left", "ui_right", "ui_up", "ui_down") * TankSpeed;
 
-        Rset(nameof(puppetPosition), Position);
-        Rset(nameof(puppetVelocity), _velocity);
+        Rset(nameof(_puppetPosition), Position);
+        Rset(nameof(_puppetVelocity), _velocity);
 
         // if (Input.IsActionPressed("fire") && _canFire)
         // {

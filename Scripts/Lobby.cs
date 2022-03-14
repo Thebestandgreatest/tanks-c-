@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Net.NetworkInformation;
+using System.Resources;
 using Godot;
 
 // ReSharper disable once CheckNamespace
@@ -26,16 +27,14 @@ public class Lobby : Panel
 
     public override void _Ready()
     {
-        _level = GetTree().Root.GetNode<Node2D>("Level");
-        _level.Visible = false;
-        
+        _level = GetNode<Node2D>("../Level");
         _address = GetNode<LineEdit>("Address");
         _hostButton = GetNode<Button>("Host");
         _joinButton = GetNode<Button>("Join");
         _status = GetNode<Label>("Status");
         _name = GetNode<LineEdit>("Name");
 
-        _playerPanel = GetParent().GetNode<Panel>("Players");
+        _playerPanel = GetNode<Panel>("../Players");
         _teamAList = _playerPanel.GetNode<ItemList>("Team A List");
         _teamBList = _playerPanel.GetNode<ItemList>("Team B List");
         _startButton = _playerPanel.GetNode<Button>("Start");
@@ -55,32 +54,50 @@ public class Lobby : Panel
 
     public void OnHostPressed()
     {
-        _level.Visible = true;
+        GD.Print("hosting server");
         NetworkedMultiplayerENet peer = new NetworkedMultiplayerENet();
-        peer.CreateServer(DefaultPort, 32);
+        peer.CreateServer(DefaultPort, MaxPlayers);
         GetTree().NetworkPeer = peer;
-        GD.Print("Hosting Server");
 
+        OS.SetWindowTitle("Host");
         //TODO: validate name
-        StartGame();
+        Hide();
+        _playerPanel.Show();
+        RefreshLobby();
     }
 
     public void OnJoinPressed()
     {
-        _level.Visible = true;
+        GD.Print("joining server");
         string address = _address.Text;
-
+        OS.SetWindowTitle("Client");
+        
         //TODO: validate ip
         //TODO: validate name
 
         NetworkedMultiplayerENet clientPeer = new NetworkedMultiplayerENet();
         Error result = clientPeer.CreateClient(address, DefaultPort);
-
         GetTree().NetworkPeer = clientPeer;
+        Hide();
+        //_playerPanel.Show();
+        //todo: temporary code
+        _playerPanel.Hide();
+        _level.Show();
+    }
+    
+    public void StartGame()
+    {
+        PrepareGame();
+        RegisterPlayer(_name.Text);
+        GD.Print("starting game");
+        _playerPanel.Hide();
+        _level.Show();
+        SpawnPlayers();
     }
 
-    public void LeaveGame()
+    private void LeaveGame()
     {
+        GD.Print("leaving server");
         foreach (var player in _players)
         {
             GetNode(player.Key.ToString()).QueueFree();
@@ -90,68 +107,85 @@ public class Lobby : Panel
         Rpc(nameof(RemovePlayer), GetTree().GetNetworkUniqueId());
         ((NetworkedMultiplayerENet)GetTree().NetworkPeer).CloseConnection();
         GetTree().NetworkPeer = null;
+        Show();
     }
 
     private void PlayerConnected(int id)
     {
+        GD.Print("player connected");
         RpcId(id, nameof(RegisterPlayer), _name.Text);
+        RefreshLobby();
     }
 
     private void PlayerDisconnected(int id)
     {
+        GD.Print("player disconnected");
         RemovePlayer(id);
+        RefreshLobby();
     }
 
     private void ConnectedOk()
     {
-        StartGame();
+        GD.Print("Connected okay");
+        //StartGame();
     }
 
     private void ConnectedFail()
     {
+        GD.Print("connected fail");
         GetTree().NetworkPeer = null;
     }
 
     private void ServerDisconnected()
     {
+        GD.Print("server disconnected");
         LeaveGame();
     }
 
+    [RemoteSync]
+    private void PrepareGame()
+    {
+        Hide();
+        _playerPanel.Hide();
+        _level.Show();
+    }
+    
     [Remote]
     private void RegisterPlayer(string playerName)
     {
+        GD.Print("registering player " + playerName);
         int id = GetTree().GetRpcSenderId();
         _players.Add(id, playerName);
-
-        SpawnPlayer(id, playerName);
+        RefreshLobby();
     }
 
-    [Remote]
-    public void StartGame()
+    [RemoteSync]
+    private void SpawnPlayers()
     {
-        SpawnPlayer(GetTree().GetNetworkUniqueId(), _name.Text);
-    }
-
-    [Remote]
-    private void SpawnPlayer(int id, string playerName)
-    {
-        Player playerNode = ResourceLoader.Load<PackedScene>("res://Scenes/Player.tscn").Instance<Player>();
-        playerNode.Name = id.ToString();
-        playerNode.SetNetworkMaster(id);
-
-        playerNode.Position = new Vector2(500, 250 * id);
-
-        GetTree().Root.GetNode("Level").AddChild(playerNode);
+        PackedScene playerScene = ResourceLoader.Load<PackedScene>("res://Scenes/Player.tscn");
+        int i = 1;
+        GD.Print(_players);
+        foreach (var player in _players)
+        {
+            Player playerNode = playerScene.Instance<Player>();
+            playerNode.Name = player.Key.ToString();
+            GD.Print();
+            GD.Print("spawning " + player.Value + " and taking over id:" + player.Key);
+            playerNode.SetNetworkMaster(player.Key);
+            playerNode.Position = new Vector2(500, 250 * i);
+            _level.AddChild(playerNode);
+            i++;
+        }
     }
 
     [Remote]
     private void RemovePlayer(int id)
     {
-        if (_players.ContainsKey(id))
-        {
-            _players.Remove(id);
-            GetNode(id.ToString()).QueueFree();
-        }
+        GD.Print("removing player");
+        if (!_players.ContainsKey(id)) return;
+        _players.Remove(id);
+        GetNode(id.ToString()).QueueFree();
+        RefreshLobby();
     }
     
     private void RefreshLobby()
