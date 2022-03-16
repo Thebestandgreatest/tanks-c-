@@ -1,18 +1,9 @@
-using System.Linq;
-using System.Net.NetworkInformation;
-using System.Resources;
 using Godot;
 
 // ReSharper disable once CheckNamespace
 // ReSharper disable once UnusedType.Global
 public class Lobby : Panel
 {
-    private const int DefaultPort = 5672;
-    private const int MaxPlayers = 10;
-
-    private readonly Godot.Collections.Dictionary<int, string> _players =
-        new Godot.Collections.Dictionary<int, string>();
-
     private LineEdit _address;
     private Button _hostButton;
     private Button _joinButton;
@@ -43,13 +34,6 @@ public class Lobby : Panel
         _hostButton.Connect("pressed", this, nameof(OnHostPressed));
         _joinButton.Connect("pressed", this, nameof(OnJoinPressed));
         _startButton.Connect("pressed", this, nameof(StartGame));
-
-        // multiplayer signals
-        GetTree().Connect("network_peer_connected", this, nameof(PlayerConnected));
-        GetTree().Connect("network_peer_disconnected", this, nameof(PlayerDisconnected));
-        GetTree().Connect("connected_to_server", this, nameof(ConnectedOk));
-        GetTree().Connect("connection_failed", this, nameof(ConnectedFail));
-        GetTree().Connect("server_disconnected", this, nameof(ServerDisconnected));
     }
 
     public void OnHostPressed()

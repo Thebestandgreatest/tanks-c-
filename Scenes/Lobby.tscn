@@ -1,7 +1,6 @@
-[gd_scene load_steps=3 format=2]
+[gd_scene load_steps=2 format=2]
 
 [ext_resource path="res://Scripts/Lobby.cs" type="Script" id=1]
-[ext_resource path="res://Scenes/Levels/Level A.tscn" type="PackedScene" id=2]
 
 [node name="Lobby" type="Node2D"]
 
@@ -124,6 +123,3 @@ margin_right = 576.0
 margin_bottom = 38.0
 text = "Team B"
 align = 1
-
-[node name="Level" parent="." instance=ExtResource( 2 )]
-visible = false
