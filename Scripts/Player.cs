@@ -58,8 +58,8 @@ public class Player : KinematicBody2D
         else
         {
             _tween.InterpolateProperty(this, "global_position", GlobalPosition, _puppetPosition, (float) 0.1);
-            RotationDegrees = Mathf.Lerp(_tankBody.GlobalRotationDegrees, _puppetBodyRotation, delta * 8);
-            _tankTurret.RotationDegrees = Mathf.Lerp((float) _tankTurret.GlobalRotationDegrees, _puppetTurretRotation, delta * 8);
+            RotationDegrees = Mathf.LerpAngle(_tankBody.GlobalRotationDegrees, _puppetBodyRotation, delta * 8);
+            _tankTurret.RotationDegrees = Mathf.LerpAngle( _tankTurret.GlobalRotationDegrees, _puppetTurretRotation, delta * 8);
 
             if (!_tween.IsActive())
             {
@@ -92,8 +92,8 @@ public class Player : KinematicBody2D
         if (bodyAngleDifference > 1)
             _bodyAngle += BodyRotateSpeed;
         else if (bodyAngleDifference < -1) _bodyAngle -= BodyRotateSpeed;
-        Mathf.LerpAngle(_tankTurret.GlobalRotationDegrees, (float) _bodyAngle, (float) 0.1);
-        //_tankBody.GlobalRotationDegrees = (float) _bodyAngle;
+        //Mathf.LerpAngle(_tankTurret.GlobalRotationDegrees, (float) _bodyAngle, (float) 0.1);
+        _tankBody.GlobalRotationDegrees = (float) _bodyAngle;
 
         //turret angle code
         double mouseAngle =
@@ -104,8 +104,8 @@ public class Player : KinematicBody2D
             _turretAngle -= TurretRotateSpeed;
         else if (turretAngleDifference < 1) _turretAngle += TurretRotateSpeed;
 
-        Mathf.LerpAngle(_tankTurret.GlobalRotationDegrees, (float) Math.Round(_turretAngle), (float) 0.1);
-        //_tankTurret.GlobalRotationDegrees = (float) Math.Round(_turretAngle);
+        //Mathf.LerpAngle(_tankTurret.GlobalRotationDegrees, (float) Math.Round(_turretAngle), (float) 0.1);
+        _tankTurret.GlobalRotationDegrees = (float) Math.Round(_turretAngle);
     }
 
     private static double AngleDifference(double testAngle, double currentAngle)
