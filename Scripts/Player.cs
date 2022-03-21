@@ -15,31 +15,57 @@ public class Player : KinematicBody2D
     private const double BodyRotateSpeed = 2;
     
     private readonly PackedScene _bulletScene = GD.Load<PackedScene>("res://Scenes/Bullets/Basic.tscn");
-    private double _bodyAngle;
-    private bool _canFire = true;
-    private CollisionPolygon2D _tankBodyCollision;
-
+    private CollisionPolygon2D _tankBody;
     private Sprite _tankTurret;
     private Timer _timer;
+    private Tween _tween;
+    
+    
     private double _turretAngle;
-
     private Vector2 _turretOffset;
     private Vector2 _velocity;
-    
+    private double _bodyAngle;
+    private bool _canFire = true;
+
+    [Puppet] private Vector2 _puppetPosition = new Vector2();
+    [Puppet] private Vector2 _puppetVelocity = new Vector2();
+    [Puppet] private float _puppetBodyRotation = 0;
+    [Puppet] private float _puppetTurretRotation = 0;
+  
     public override void _Ready()
     {
         _tankTurret = GetNode<Sprite>("CollisionShape2D/tankBody/tankTurret");
-        _tankBodyCollision = GetNode<CollisionPolygon2D>("CollisionShape2D");
+        _tankBody = GetNode<CollisionPolygon2D>("CollisionShape2D");
         _turretOffset = new Vector2(0, -80);
-        _timer = GetNode<Timer>("Timer");
+        _timer = GetNode<Timer>("ShootTimer");
+        _tween = GetNode<Tween>("Tween");
     }
 
     public override void _PhysicsProcess(float delta)
     {
-        GetInput();
-        Animate();
+        if (IsNetworkMaster())
+        {
+            GetInput();
+            Animate();
+            
+            _velocity = MoveAndSlide(_velocity);
 
-        _velocity = MoveAndSlide(_velocity);
+            RsetUnreliable(nameof(_puppetPosition), GlobalPosition);
+            RsetUnreliable(nameof(_puppetBodyRotation), _tankBody.GlobalRotationDegrees);
+            RsetUnreliable(nameof(_puppetTurretRotation), _tankTurret.GlobalRotationDegrees);
+            RsetUnreliable(nameof(_puppetVelocity), _velocity);
+        }
+        else
+        {
+            _tween.InterpolateProperty(this, "global_position", GlobalPosition, _puppetPosition, (float) 0.1);
+            RotationDegrees = Mathf.Lerp(_tankBody.GlobalRotationDegrees, _puppetBodyRotation, delta * 8);
+            _tankTurret.RotationDegrees = Mathf.Lerp((float) _tankTurret.GlobalRotationDegrees, _puppetTurretRotation, delta * 8);
+
+            if (!_tween.IsActive())
+            {
+                MoveAndSlide(_puppetVelocity);
+            }
+        }
     }
 
     private void GetInput()
@@ -50,7 +76,7 @@ public class Player : KinematicBody2D
 
          if (Input.IsActionPressed("fire") && _canFire)
          {
-             EmitSignal(nameof(Shoot), _bulletScene, _tankTurret.RotationDegrees, _tankBodyCollision.RotationDegrees,
+             EmitSignal(nameof(Shoot), _bulletScene, _tankTurret.RotationDegrees, _tankBody.RotationDegrees,
                  _tankTurret.GlobalPosition);
          }
     }
@@ -59,14 +85,15 @@ public class Player : KinematicBody2D
     {
         //body angle code
         double velocityAngle = Mathf.Round(Mathf.Rad2Deg(_velocity.Angle()) + 90);
-        _bodyAngle = Mathf.Round(_tankBodyCollision.GlobalRotationDegrees);
+        _bodyAngle = Mathf.Round(_tankBody.GlobalRotationDegrees);
         double bodyAngleDifference = AngleDifference(_bodyAngle, velocityAngle);
 
         if (_velocity == Vector2.Zero) return;
         if (bodyAngleDifference > 1)
             _bodyAngle += BodyRotateSpeed;
         else if (bodyAngleDifference < -1) _bodyAngle -= BodyRotateSpeed;
-        _tankBodyCollision.GlobalRotationDegrees = (float) _bodyAngle;
+        Mathf.LerpAngle(_tankTurret.GlobalRotationDegrees, (float) _bodyAngle, (float) 0.1);
+        //_tankBody.GlobalRotationDegrees = (float) _bodyAngle;
 
         //turret angle code
         double mouseAngle =
@@ -77,8 +104,8 @@ public class Player : KinematicBody2D
             _turretAngle -= TurretRotateSpeed;
         else if (turretAngleDifference < 1) _turretAngle += TurretRotateSpeed;
 
-        //_rotationLabel.Text = "Target Angle: " + mouseAngle + ", Current Angle: " + turretAngle;
-        _tankTurret.GlobalRotationDegrees = (float) Math.Round(_turretAngle);
+        Mathf.LerpAngle(_tankTurret.GlobalRotationDegrees, (float) Math.Round(_turretAngle), (float) 0.1);
+        //_tankTurret.GlobalRotationDegrees = (float) Math.Round(_turretAngle);
     }
 
     private static double AngleDifference(double testAngle, double currentAngle)

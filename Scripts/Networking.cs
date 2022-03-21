@@ -14,12 +14,10 @@ public class Networking : Node
 
     public override void _Ready()
     {
-        _ipAddress = (string) IP.GetLocalAddresses()[3];
-
         foreach (object ip in IP.GetLocalAddresses())
         {
             string address = (string) ip;
-            if (address.StartsWith("192.168"))
+            if (address.StartsWith("192.168") && !address.EndsWith(".1"))
             {
                 _ipAddress = (string) ip;
             }

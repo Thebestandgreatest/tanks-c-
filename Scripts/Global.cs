@@ -1,7 +1,7 @@
 ﻿using Godot;
 
 // ReSharper disable once CheckNamespace
-// ReSharper disable once UnusedType.Global
+// ReSharper disable once ClassNeverInstantiated.Global
 public class Global : Node
 {
     public Node2D InstanceNodeAtLocation(PackedScene node, Node parent, Vector2 location)
