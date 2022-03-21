@@ -16,7 +16,8 @@ config/icon="res://icon.png"
 
 [autoload]
 
-Networking="*res://Scripts/networking.cs"
+Network="*res://Scripts/Networking.cs"
+Global="*res://Scripts/Global.cs"
 
 [debug]
 
