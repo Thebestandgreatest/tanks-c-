@@ -10,7 +10,7 @@ public class Networking : Node
     private NetworkedMultiplayerENet _server = null;
     private NetworkedMultiplayerENet _client = null;
 
-    public string _ipAddress = "";
+    public string IpAddress = "";
 
     public override void _Ready()
     {
@@ -19,7 +19,7 @@ public class Networking : Node
             string address = (string) ip;
             if (address.StartsWith("192.168") && !address.EndsWith(".1"))
             {
-                _ipAddress = (string) ip;
+                IpAddress = (string) ip;
             }
         }
 
@@ -37,7 +37,7 @@ public class Networking : Node
     public void JoinServer()
     {
         _client = new NetworkedMultiplayerENet();
-        _client.CreateClient(_ipAddress, DefaultPort);
+        _client.CreateClient(IpAddress, DefaultPort);
         GetTree().NetworkPeer = _client;
     }
 

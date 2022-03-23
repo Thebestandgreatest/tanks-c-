@@ -57,9 +57,14 @@ public class Player : KinematicBody2D
         }
         else
         {
-            _tween.InterpolateProperty(this, "global_position", GlobalPosition, _puppetPosition, (float) 0.1);
-            RotationDegrees = Mathf.LerpAngle(_tankBody.GlobalRotationDegrees, _puppetBodyRotation, delta * 8);
-            _tankTurret.RotationDegrees = Mathf.LerpAngle( _tankTurret.GlobalRotationDegrees, _puppetTurretRotation, delta * 8);
+            GlobalPosition = _puppetPosition;
+            _tankBody.GlobalRotationDegrees = _puppetBodyRotation;
+            _tankTurret.GlobalRotationDegrees = _puppetTurretRotation;
+            _velocity = _puppetVelocity;
+            
+            //_tween.InterpolateProperty(this, "global_position", GlobalPosition, _puppetPosition, (float) 0.1);
+            //RotationDegrees = Mathf.LerpAngle(_tankBody.GlobalRotationDegrees, _puppetBodyRotation, delta * 8);
+            //_tankTurret.RotationDegrees = Mathf.LerpAngle( _tankTurret.GlobalRotationDegrees, _puppetTurretRotation, delta * 8);
 
             if (!_tween.IsActive())
             {

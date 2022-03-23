@@ -80,7 +80,7 @@ public class Lobby : Panel
 		if (_address.Text != "")
 		{
 			Hide();
-			_network._ipAddress = _address.Text;
+			_network.IpAddress = _address.Text;
 			_network.JoinServer();
 		}
 		// todo: return error
@@ -93,8 +93,8 @@ public class Lobby : Panel
 	
 	private void InstancePlayer(int id)
 	{
-		var playerInstance =
-			_global.InstanceNodeAtLocation(_player, _players, new Vector2((float) GD.RandRange(0, 1920), (float) GD.RandRange(0, 1080)));
+		Node2D playerInstance =
+			_global.InstanceNodeAtLocation(_player, _players, new Vector2((float) GD.RandRange(0, 500), (float) GD.RandRange(0, 500)));
 		playerInstance.Name = id.ToString();
 		playerInstance.SetNetworkMaster(id);
 
