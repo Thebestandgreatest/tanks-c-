@@ -6,10 +6,7 @@ using Godot;
 // ReSharper disable once ClassNeverInstantiated.Global
 public class Player : KinematicBody2D
 {
-    [Signal]
-    private delegate void Shoot(PackedScene bullet, float direction, Vector2 location);
-    
-    // load values from file or server for custom games
+    // todo: load values from file or server for custom games
     private const int TankSpeed = 100;
     private const double TurretRotateSpeed = 1;
     private const double BodyRotateSpeed = 2;
@@ -20,12 +17,13 @@ public class Player : KinematicBody2D
     private Timer _timer;
     private Tween _tween;
     
-    
     private double _turretAngle;
     private Vector2 _turretOffset;
     private Vector2 _velocity;
     private double _bodyAngle;
     private bool _canFire = true;
+
+    private Global _global;
 
     [Puppet] private Vector2 _puppetPosition = new Vector2();
     [Puppet] private Vector2 _puppetVelocity = new Vector2();
@@ -34,10 +32,12 @@ public class Player : KinematicBody2D
   
     public override void _Ready()
     {
+        _global = GetNode<Global>("/root/Global");
+        
         _tankTurret = GetNode<Sprite>("CollisionShape2D/tankBody/tankTurret");
         _tankBody = GetNode<CollisionPolygon2D>("CollisionShape2D");
         _turretOffset = new Vector2(0, -80);
-        _timer = GetNode<Timer>("ShootTimer");
+        _timer = GetNode<Timer>("Timer");
         _tween = GetNode<Tween>("Tween");
     }
 
@@ -81,7 +81,7 @@ public class Player : KinematicBody2D
 
          if (Input.IsActionPressed("fire") && _canFire)
          {
-             EmitSignal(nameof(Shoot), _bulletScene, _tankTurret.RotationDegrees, _tankBody.RotationDegrees,
+             PlayerShoot(_bulletScene, _tankTurret.RotationDegrees, _tankBody.RotationDegrees,
                  _tankTurret.GlobalPosition);
          }
     }
@@ -125,12 +125,12 @@ public class Player : KinematicBody2D
         KinematicBody2D bulletInstance = bullet.Instance<KinematicBody2D>();
         rotation += bodyRotation;
         bulletInstance.RotationDegrees = rotation;
-        bulletInstance.Position = location + _turretOffset.Rotated(Mathf.Deg2Rad(rotation));
-        GetParent().AddChild(bulletInstance);
+        Vector2 bulletPosition = location + _turretOffset.Rotated(Mathf.Deg2Rad(rotation));
+        _global.InstanceNodeAtLocation(bullet, GetTree().Root.GetNode("Level"), bulletPosition);
 
         _canFire = false;
         _timer.Start((float) 0.5);
-        await ToSignal(_timer, "timout");
+        await ToSignal(_timer, "timeout");
         _canFire = true;
     }
 }
