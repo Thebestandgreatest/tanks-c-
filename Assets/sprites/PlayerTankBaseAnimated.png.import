@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/PlayerTankBaseAnimated.png-2f1119155156c104091fe5a09000174c.stex"
+path="res://.import/PlayerTankBaseAnimated.png-91f22e8108a7fd31e083648fcf053d5e.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/Sprites/PlayerTankBaseAnimated.png"
-dest_files=[ "res://.import/PlayerTankBaseAnimated.png-2f1119155156c104091fe5a09000174c.stex" ]
+source_file="res://Assets/sprites/PlayerTankBaseAnimated.png"
+dest_files=[ "res://.import/PlayerTankBaseAnimated.png-91f22e8108a7fd31e083648fcf053d5e.stex" ]
 
 [params]
 

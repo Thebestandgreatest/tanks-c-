@@ -70,25 +70,30 @@ public class Lobby : Panel
 
 	public void OnHostPressed()
 	{
+		OS.SetWindowTitle("Server");
 		Hide();
 		_network.CreateServer();
-		InstancePlayer(GetTree().GetNetworkUniqueId());
+		InstancePlayer(Networking.playerIndex);
 	}
 
 	public void OnJoinPressed()
 	{
-		if (_address.Text != "")
+		OS.SetWindowTitle("Client");
+		if (_address.Text != "" && _address.Text.IsValidIPAddress())
 		{
 			Hide();
 			_network.IpAddress = _address.Text;
 			_network.JoinServer();
 		}
-		// todo: return error
+		else
+		{
+			_status.Text = "Invalid ip address";
+		}
 	}
 
 	private void ConnectedToServer()
 	{
-		InstancePlayer(GetTree().GetNetworkUniqueId());
+		InstancePlayer(Networking.playerIndex);
 	}
 	
 	private void InstancePlayer(int id)
@@ -97,7 +102,8 @@ public class Lobby : Panel
 			Global.InstanceNodeAtLocation(_player, _players, new Vector2((float) GD.RandRange(0, 500), (float) GD.RandRange(0, 500)));
 		playerInstance.Name = id.ToString();
 		playerInstance.SetNetworkMaster(id);
-
+		GetTree().Root.PrintTreePretty();
+		Networking.playerIndex++;
 	}
 	
 	public void OnStartPressed()

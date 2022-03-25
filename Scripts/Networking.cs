@@ -12,6 +12,9 @@ public class Networking : Node
 
     public string IpAddress = "";
 
+    public static int playerIndex = 1;
+    public static int bulletIndex = 1;
+
     public override void _Ready()
     {
         foreach (object ip in IP.GetLocalAddresses())

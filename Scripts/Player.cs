@@ -80,8 +80,7 @@ public class Player : KinematicBody2D
 
          if (Input.IsActionPressed("fire") && _canFire)
          {
-             PlayerShoot(_bulletScene, _tankTurret.RotationDegrees, _tankBody.RotationDegrees,
-                 _tankTurret.GlobalPosition);
+             PlayerShoot(_bulletScene, GetTree().GetNetworkUniqueId());
          }
     }
 
@@ -119,15 +118,21 @@ public class Player : KinematicBody2D
         return diff < -180 ? diff + 360 : diff;
     }
 
-    private async void PlayerShoot(PackedScene bullet, float rotation, float bodyRotation, Vector2 location)
+    [Sync]
+    private async void PlayerShoot(PackedScene bullet, int id)
     {
-        float bulletRotation = rotation + bodyRotation;
-        Vector2 bulletPosition = location + _turretOffset.Rotated(Mathf.Deg2Rad(bulletRotation));
-        Global.InstanceNodeAtLocation(bullet, GetParent(), bulletPosition, bulletRotation);
+        float bulletRotation = _tankTurret.RotationDegrees + _tankBody.RotationDegrees;
+        Vector2 bulletPosition = _tankTurret.GlobalPosition + _turretOffset.Rotated(Mathf.Deg2Rad(bulletRotation));
+        Node2D bulletInstance = Global.InstanceNodeAtLocation(bullet, GetTree().Root.GetNode("Players"), bulletPosition, bulletRotation);
+        bulletInstance.Name = "Bullet " + Networking.bulletIndex;
+        bulletInstance.SetNetworkMaster(id);
+        Networking.bulletIndex++;
 
+        
         _canFire = false;
         _timer.Start((float) 0.5);
         await ToSignal(_timer, "timeout");
         _canFire = true;
+        
     }
 }
