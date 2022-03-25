@@ -19,7 +19,6 @@ texture = ExtResource( 2 )
 offset = Vector2( 0, -200 )
 
 [node name="Camera2D" type="Camera2D" parent="."]
-current = true
 
 [node name="Label" type="Label" parent="."]
 margin_right = 40.0

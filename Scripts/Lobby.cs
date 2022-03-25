@@ -94,7 +94,7 @@ public class Lobby : Panel
 	private void InstancePlayer(int id)
 	{
 		Node2D playerInstance =
-			_global.InstanceNodeAtLocation(_player, _players, new Vector2((float) GD.RandRange(0, 500), (float) GD.RandRange(0, 500)));
+			Global.InstanceNodeAtLocation(_player, _players, new Vector2((float) GD.RandRange(0, 500), (float) GD.RandRange(0, 500)));
 		playerInstance.Name = id.ToString();
 		playerInstance.SetNetworkMaster(id);
 

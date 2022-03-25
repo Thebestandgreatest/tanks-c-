@@ -1,5 +1,4 @@
 using System;
-using System.Net.NetworkInformation;
 using Godot;
 
 // ReSharper disable once CheckNamespace
@@ -122,11 +121,9 @@ public class Player : KinematicBody2D
 
     private async void PlayerShoot(PackedScene bullet, float rotation, float bodyRotation, Vector2 location)
     {
-        KinematicBody2D bulletInstance = bullet.Instance<KinematicBody2D>();
-        rotation += bodyRotation;
-        bulletInstance.RotationDegrees = rotation;
-        Vector2 bulletPosition = location + _turretOffset.Rotated(Mathf.Deg2Rad(rotation));
-        _global.InstanceNodeAtLocation(bullet, GetTree().Root.GetNode("Level"), bulletPosition);
+        float bulletRotation = rotation + bodyRotation;
+        Vector2 bulletPosition = location + _turretOffset.Rotated(Mathf.Deg2Rad(bulletRotation));
+        Global.InstanceNodeAtLocation(bullet, GetParent(), bulletPosition, bulletRotation);
 
         _canFire = false;
         _timer.Start((float) 0.5);

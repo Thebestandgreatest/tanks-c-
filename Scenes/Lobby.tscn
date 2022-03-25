@@ -123,3 +123,7 @@ margin_right = 576.0
 margin_bottom = 38.0
 text = "Team B"
 align = 1
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2( 512, 304 )
+current = true
