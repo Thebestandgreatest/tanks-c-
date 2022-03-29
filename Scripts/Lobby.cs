@@ -1,3 +1,4 @@
+using System;
 using Godot;
 
 // ReSharper disable once CheckNamespace
@@ -73,17 +74,30 @@ public class Lobby : Panel
 		OS.SetWindowTitle("Server");
 		Hide();
 		_network.CreateServer();
-		InstancePlayer(Networking.playerIndex);
+		InstancePlayer(GetTree().GetNetworkUniqueId());
 	}
 
 	public void OnJoinPressed()
 	{
 		OS.SetWindowTitle("Client");
-		if (_address.Text != "" && _address.Text.IsValidIPAddress())
+		string[] address = _address.Text.Split(":");
+
+		string ip = address[0];
+		int port = 0;
+		try
+		{
+			port = address[1].ToInt();
+		}
+		catch (Exception e)
+		{
+			port = Networking.DefaultPort;
+		}
+		
+
+		if (ip != "" && ip.IsValidIPAddress())
 		{
 			Hide();
-			_network.IpAddress = _address.Text;
-			_network.JoinServer();
+			_network.JoinServer(ip, port);
 		}
 		else
 		{
@@ -93,17 +107,18 @@ public class Lobby : Panel
 
 	private void ConnectedToServer()
 	{
-		InstancePlayer(Networking.playerIndex);
+		InstancePlayer(GetTree().GetNetworkUniqueId());
 	}
 	
 	private void InstancePlayer(int id)
 	{
+		//todo: add names
+		_network.AddPlayer(id, "");
 		Node2D playerInstance =
 			Global.InstanceNodeAtLocation(_player, _players, new Vector2((float) GD.RandRange(0, 500), (float) GD.RandRange(0, 500)));
 		playerInstance.Name = id.ToString();
 		playerInstance.SetNetworkMaster(id);
 		GetTree().Root.PrintTreePretty();
-		Networking.playerIndex++;
 	}
 	
 	public void OnStartPressed()

@@ -45,8 +45,7 @@ public class Player : KinematicBody2D
         if (IsNetworkMaster())
         {
             GetInput();
-            Animate();
-            
+
             _velocity = MoveAndSlide(_velocity);
 
             RsetUnreliable(nameof(_puppetPosition), GlobalPosition);
@@ -70,34 +69,24 @@ public class Player : KinematicBody2D
                 MoveAndSlide(_puppetVelocity);
             }
         }
+        Animate();
     }
 
     private void GetInput()
     {
         _velocity = new Vector2();
         _velocity = Input.GetVector("ui_left", "ui_right", "ui_up", "ui_down") * TankSpeed;
-        
 
-         if (Input.IsActionPressed("fire") && _canFire)
-         {
-             PlayerShoot(_bulletScene, GetTree().GetNetworkUniqueId());
-         }
+        if (Input.IsActionPressed("fire") && _canFire)
+        {
+            float bulletRotation = _tankTurret.RotationDegrees + _tankBody.RotationDegrees;
+            Vector2 bulletPosition = _tankTurret.GlobalPosition + _turretOffset.Rotated(Mathf.Deg2Rad(bulletRotation));
+            Rpc(nameof(PlayerShoot), _bulletScene, bulletPosition, bulletRotation, GetTree().GetNetworkUniqueId());
+        }
     }
 
     private void Animate()
     {
-        //body angle code
-        double velocityAngle = Mathf.Round(Mathf.Rad2Deg(_velocity.Angle()) + 90);
-        _bodyAngle = Mathf.Round(_tankBody.GlobalRotationDegrees);
-        double bodyAngleDifference = AngleDifference(_bodyAngle, velocityAngle);
-
-        if (_velocity == Vector2.Zero) return;
-        if (bodyAngleDifference > 1)
-            _bodyAngle += BodyRotateSpeed;
-        else if (bodyAngleDifference < -1) _bodyAngle -= BodyRotateSpeed;
-        //Mathf.LerpAngle(_tankTurret.GlobalRotationDegrees, (float) _bodyAngle, (float) 0.1);
-        _tankBody.GlobalRotationDegrees = (float) _bodyAngle;
-
         //turret angle code
         double mouseAngle =
             Math.Round(Mathf.Rad2Deg(_tankTurret.GlobalPosition.AngleToPoint(GetGlobalMousePosition()))) - 90;
@@ -109,6 +98,18 @@ public class Player : KinematicBody2D
 
         //Mathf.LerpAngle(_tankTurret.GlobalRotationDegrees, (float) Math.Round(_turretAngle), (float) 0.1);
         _tankTurret.GlobalRotationDegrees = (float) Math.Round(_turretAngle);
+        
+        //body angle code
+        double velocityAngle = Mathf.Round(Mathf.Rad2Deg(_velocity.Angle()) + 90);
+        _bodyAngle = Mathf.Round(_tankBody.GlobalRotationDegrees);
+        double bodyAngleDifference = AngleDifference(_bodyAngle, velocityAngle);
+
+        if (_velocity == Vector2.Zero) return;
+        if (bodyAngleDifference > 1)
+            _bodyAngle += BodyRotateSpeed;
+        else if (bodyAngleDifference < -1) _bodyAngle -= BodyRotateSpeed;
+        //Mathf.LerpAngle(_tankTurret.GlobalRotationDegrees, (float) _bodyAngle, (float) 0.1);
+        _tankBody.GlobalRotationDegrees = (float) _bodyAngle;
     }
 
     private static double AngleDifference(double testAngle, double currentAngle)
@@ -118,17 +119,13 @@ public class Player : KinematicBody2D
         return diff < -180 ? diff + 360 : diff;
     }
 
-    [Sync]
-    private async void PlayerShoot(PackedScene bullet, int id)
+    [RemoteSync]
+    private async void PlayerShoot(PackedScene bullet, Vector2 bulletPosition, float bulletRotation, int id)
     {
-        float bulletRotation = _tankTurret.RotationDegrees + _tankBody.RotationDegrees;
-        Vector2 bulletPosition = _tankTurret.GlobalPosition + _turretOffset.Rotated(Mathf.Deg2Rad(bulletRotation));
         Node2D bulletInstance = Global.InstanceNodeAtLocation(bullet, GetTree().Root.GetNode("Players"), bulletPosition, bulletRotation);
-        bulletInstance.Name = "Bullet " + Networking.bulletIndex;
-        bulletInstance.SetNetworkMaster(id);
-        Networking.bulletIndex++;
+        bulletInstance.Name = "Bullet " + Networking.BulletIndex;
+        Networking.BulletIndex++;
 
-        
         _canFire = false;
         _timer.Start((float) 0.5);
         await ToSignal(_timer, "timeout");
