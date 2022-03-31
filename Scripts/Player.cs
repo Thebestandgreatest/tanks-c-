@@ -23,6 +23,7 @@ public class Player : KinematicBody2D
     private bool _canFire = true;
 
     private Global _global;
+    private Networking _network;
 
     [Puppet] private Vector2 _puppetPosition = new Vector2();
     [Puppet] private Vector2 _puppetVelocity = new Vector2();
@@ -32,6 +33,7 @@ public class Player : KinematicBody2D
     public override void _Ready()
     {
         _global = GetNode<Global>("/root/Global");
+        _network = GetNode<Networking>("/root/Network");
         
         _tankTurret = GetNode<Sprite>("CollisionShape2D/tankBody/tankTurret");
         _tankBody = GetNode<CollisionPolygon2D>("CollisionShape2D");
@@ -60,10 +62,6 @@ public class Player : KinematicBody2D
             _tankTurret.GlobalRotationDegrees = _puppetTurretRotation;
             _velocity = _puppetVelocity;
             
-            //_tween.InterpolateProperty(this, "global_position", GlobalPosition, _puppetPosition, (float) 0.1);
-            //RotationDegrees = Mathf.LerpAngle(_tankBody.GlobalRotationDegrees, _puppetBodyRotation, delta * 8);
-            //_tankTurret.RotationDegrees = Mathf.LerpAngle( _tankTurret.GlobalRotationDegrees, _puppetTurretRotation, delta * 8);
-
             if (!_tween.IsActive())
             {
                 MoveAndSlide(_puppetVelocity);
@@ -119,17 +117,17 @@ public class Player : KinematicBody2D
         return diff < -180 ? diff + 360 : diff;
     }
 
-    [RemoteSync]
+    [Sync]
     private async void PlayerShoot(PackedScene bullet, Vector2 bulletPosition, float bulletRotation, int id)
     {
         Node2D bulletInstance = Global.InstanceNodeAtLocation(bullet, GetTree().Root.GetNode("Players"), bulletPosition, bulletRotation);
-        bulletInstance.Name = "Bullet " + Networking.BulletIndex;
-        Networking.BulletIndex++;
+        bulletInstance.Name = "Bullet " + _network.BulletIndex;
+        bulletInstance.SetNetworkMaster(id);
+        _network.BulletIndex++;
 
         _canFire = false;
         _timer.Start((float) 0.5);
         await ToSignal(_timer, "timeout");
         _canFire = true;
-        
     }
 }

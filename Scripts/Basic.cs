@@ -4,50 +4,47 @@ using Godot;
 // ReSharper disable once UnusedType.Global
 public class Basic : KinematicBody2D
 {
-    private const int Speed = 200;
+    private Vector2 _velocity = new Vector2(1, 0);
 
-    private float _playerRotation;
-    
-    private Vector2 _velocity;
-    private Vector2 _initialPosition;
-    private int _owner = 0;
+    private float playerRotation;
 
-    [Puppet] private Vector2 _puppetPosition = new Vector2();
-    [Puppet] private Vector2 _puppetVelocity = new Vector2();
-    [Puppet] private float _puppetRotation = 0;
+    private const int speed = 200;
+    private const int damage = 10;
+
+    [Puppet] private Vector2 _puppetPosition;
+    [Puppet] private Vector2 _puppetVelocity;
+    [Puppet] private float _puppetRotation;
+
+    private int playerOwner = 0;
 
     public override void _Ready()
     {
-        _initialPosition = GlobalPosition;
-
-        if (IsNetworkMaster())
+        if (GetTree().HasNetworkPeer())
         {
-            _velocity = _velocity.Rotated(_playerRotation);
-            Rotation = _playerRotation;
-            Rset(nameof(_puppetVelocity), _velocity);
-            Rset(nameof(_puppetRotation), Rotation);
-            Rset(nameof(_puppetPosition), GlobalPosition);
+            if (IsNetworkMaster())
+            {
+                _velocity = _velocity.Rotated(playerRotation);
+                Rotation = playerRotation;
+                Rset(nameof(_puppetVelocity), _velocity);
+                Rset(nameof(_puppetRotation), Rotation);
+                Rset(nameof(_puppetPosition), GlobalPosition);
+            }
         }
     }
-    
+
     public override void _PhysicsProcess(float delta)
     {
-        if (IsNetworkMaster())
+        if (GetTree().HasNetworkPeer())
         {
-            _velocity = MoveAndSlide(_velocity);
+            if (IsNetworkMaster())
+            {
+                MoveAndSlide(_velocity.Rotated(Rotation - Mathf.Pi/2) * speed);
+            }
+            else
+            {
+                Rotation = _puppetRotation;
+                MoveAndSlide(_puppetVelocity.Rotated(Rotation - Mathf.Pi/2) * speed);
+            }
         }
-        else
-        {
-            Rotation = _puppetRotation;
-            GlobalPosition = _puppetPosition;
-        }
-        _velocity = new Vector2(Speed, 0).Rotated(Rotation - Mathf.Pi / 2);
-        _velocity = MoveAndSlide(_velocity);
-    }
-
-    [Sync]
-    public void Destroy()
-    {
-        QueueFree();
     }
 }

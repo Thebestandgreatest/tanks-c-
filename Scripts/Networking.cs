@@ -11,7 +11,7 @@ public class Networking : Node
     private NetworkedMultiplayerENet _server = null;
     private NetworkedMultiplayerENet _client = null;
 
-    public static int BulletIndex = 1;
+    public int BulletIndex = 1;
 
     private Dictionary<int, string> _players = new Dictionary<int,string>();
 

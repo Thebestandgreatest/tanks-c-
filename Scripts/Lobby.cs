@@ -83,7 +83,7 @@ public class Lobby : Panel
 		string[] address = _address.Text.Split(":");
 
 		string ip = address[0];
-		int port = 0;
+		int port;
 		try
 		{
 			port = address[1].ToInt();
