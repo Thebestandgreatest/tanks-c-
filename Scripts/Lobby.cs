@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Godot;
 
 // ReSharper disable once CheckNamespace
@@ -12,6 +13,9 @@ public class Lobby : Panel
 	private Button _hostButton;
 	private Button _joinButton;
 	private LineEdit _name;
+
+	private Panel _hostPanel;
+	private 
 
 	private Panel _playerPanel;
 	private Button _startButton;
@@ -38,6 +42,9 @@ public class Lobby : Panel
 		_status = GetNode<Label>("Status");
 		_name = GetNode<LineEdit>("Name");
 
+		//hosting panel
+		_hostPanel = GetNode<Panel>("../Host");
+		
 		// player panel
 		_playerPanel = GetNode<Panel>("../Players");
 		_teamAList = _playerPanel.GetNode<ItemList>("Team A List");
@@ -71,10 +78,13 @@ public class Lobby : Panel
 
 	public void OnHostPressed()
 	{
+		Hide();
+		
 		OS.SetWindowTitle("Server");
 		Hide();
 		_network.CreateServer();
 		InstancePlayer(GetTree().GetNetworkUniqueId());
+		PreStartGame();
 	}
 
 	public void OnJoinPressed()
@@ -92,7 +102,6 @@ public class Lobby : Panel
 		{
 			port = Networking.DefaultPort;
 		}
-		
 
 		if (ip != "" && ip.IsValidIPAddress())
 		{
@@ -103,6 +112,9 @@ public class Lobby : Panel
 		{
 			_status.Text = "Invalid ip address";
 		}
+
+		_startButton.Disabled = true;
+		PreStartGame();
 	}
 
 	private void ConnectedToServer()
@@ -118,11 +130,35 @@ public class Lobby : Panel
 			Global.InstanceNodeAtLocation(_player, _players, new Vector2((float) GD.RandRange(0, 500), (float) GD.RandRange(0, 500)));
 		playerInstance.Name = id.ToString();
 		playerInstance.SetNetworkMaster(id);
-		GetTree().Root.PrintTreePretty();
+		playerInstance.PauseMode = PauseModeEnum.Stop;
+		GetTree().Paused = true;
+		GD.Print(_network._players);
+	}
+
+	private void PreStartGame()
+	{
+		_playerPanel.Show();
+		RefreshLobby();
+	}
+
+	[Sync]
+	private void RefreshLobby()
+	{
+		foreach (KeyValuePair<int, string> player in _network._players)
+		{
+			_teamAList.AddItem(player.Value);
+		}
+	}
+
+	[Sync]
+	private void StartGame()
+	{
+		_playerPanel.Hide();
+		GetTree().Paused = false;
 	}
 	
 	public void OnStartPressed()
 	{
-		
+		Rpc(nameof(StartGame));
 	}
 }

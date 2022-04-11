@@ -13,7 +13,7 @@ public class Networking : Node
 
     public int BulletIndex = 1;
 
-    private Dictionary<int, string> _players = new Dictionary<int,string>();
+    public Dictionary<int, string> _players = new Dictionary<int,string>();
 
     public override void _Ready()
     {
