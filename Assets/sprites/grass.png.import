@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/Dungeon_Floor_6.png-b2a9da348b6676d62da4e37c4f1d176b.stex"
+path="res://.import/grass.png-57a4ee48482aeff9f095928bca02e4a9.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/sprites/Dungeon_Floor_6.png"
-dest_files=[ "res://.import/Dungeon_Floor_6.png-b2a9da348b6676d62da4e37c4f1d176b.stex" ]
+source_file="res://Assets/sprites/grass.png"
+dest_files=[ "res://.import/grass.png-57a4ee48482aeff9f095928bca02e4a9.stex" ]
 
 [params]
 

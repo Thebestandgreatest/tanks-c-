@@ -4,6 +4,7 @@
 
 [node name="Lobby" type="Node2D"]
 pause_mode = 1
+position = Vector2( -1, 0 )
 
 [node name="Start" type="Panel" parent="."]
 pause_mode = 2
