@@ -15,7 +15,6 @@ public class Lobby : Panel
 	private LineEdit _name;
 
 	private Panel _hostPanel;
-	private 
 
 	private Panel _playerPanel;
 	private Button _startButton;
