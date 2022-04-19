@@ -9,4 +9,7 @@
     <ItemGroup>
       <EmbeddedResource Remove="test\**" />
     </ItemGroup>
+    <ItemGroup>
+      <Content Include="Scripts\XMLSpritesheetImporter.gd" />
+    </ItemGroup>
 </Project>

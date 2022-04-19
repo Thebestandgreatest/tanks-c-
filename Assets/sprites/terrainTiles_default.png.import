@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/terrainTiles_default.png-5448be5d6f551929a7064a82ea14adb2.stex"
+path="res://.import/terrainTiles_default.png-4547575339e6487fb87d5ba1e7135101.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/Sprites/terrainTiles_default.png"
-dest_files=[ "res://.import/terrainTiles_default.png-5448be5d6f551929a7064a82ea14adb2.stex" ]
+source_file="res://Assets/sprites/terrainTiles_default.png"
+dest_files=[ "res://.import/terrainTiles_default.png-4547575339e6487fb87d5ba1e7135101.stex" ]
 
 [params]
 
