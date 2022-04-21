@@ -1,28 +1,31 @@
 [gd_scene load_steps=4 format=2]
 
 [ext_resource path="res://Scripts/Player.cs" type="Script" id=1]
-[ext_resource path="res://Assets/Sprites/PlayerTankTurret.png" type="Texture" id=2]
-[ext_resource path="res://Assets/Sprites/PlayerTankBase.png" type="Texture" id=3]
+[ext_resource path="res://Assets/Sprites/tanks.png" type="Texture" id=2]
+[ext_resource path="res://Assets/Sprites/turrets.png" type="Texture" id=3]
 
 [node name="Player" type="KinematicBody2D"]
 script = ExtResource( 1 )
 
 [node name="CollisionShape2D" type="CollisionPolygon2D" parent="."]
-polygon = PoolVector2Array( -40, -40, -22, -40, -22, -34, 22, -34, 22, -40, 40, -40, 40, 40, 22, 40, 22, 34, 14, 34, 14, 36, -14, 36, -13.8642, 34, -22, 34, -22, 40, -40, 40 )
+scale = Vector2( 2, 2 )
+polygon = PoolVector2Array( -13, -18, 13, -18, 13, -16, 19, -16, 19, 16, 13, 16, 13, 18, -13, 18, -13, 16, -19, 16, -19, -16, -13, -16 )
 __meta__ = {
 "_edit_group_": true
 }
 
 [node name="tankBody" type="Sprite" parent="CollisionShape2D"]
-scale = Vector2( 0.1, 0.1 )
-texture = ExtResource( 3 )
+texture = ExtResource( 2 )
+hframes = 5
 __meta__ = {
 "_edit_group_": true
 }
 
 [node name="tankTurret" type="Sprite" parent="CollisionShape2D/tankBody"]
-texture = ExtResource( 2 )
-offset = Vector2( 0, -200 )
+position = Vector2( 0, -4 )
+texture = ExtResource( 3 )
+offset = Vector2( 0, 13 )
+hframes = 5
 __meta__ = {
 "_edit_group_": true
 }

@@ -17,7 +17,7 @@ public class Player : KinematicBody2D
     private Tween _tween;
     
     private double _turretAngle;
-    private Vector2 _turretOffset;
+    private Vector2 _turretOffset = new Vector2(0,-70);
     private Vector2 _velocity;
     private double _bodyAngle;
     private bool _canFire = true;
@@ -37,7 +37,6 @@ public class Player : KinematicBody2D
         
         _tankTurret = GetNode<Sprite>("CollisionShape2D/tankBody/tankTurret");
         _tankBody = GetNode<CollisionPolygon2D>("CollisionShape2D");
-        _turretOffset = new Vector2(0, -80);
         _timer = GetNode<Timer>("Timer");
         _tween = GetNode<Tween>("Tween");
     }
@@ -77,7 +76,7 @@ public class Player : KinematicBody2D
 
         if (Input.IsActionPressed("fire") && _canFire)
         {
-            float bulletRotation = _tankTurret.RotationDegrees + _tankBody.RotationDegrees;
+            float bulletRotation = _tankTurret.RotationDegrees + _tankBody.RotationDegrees + 180;
             Vector2 bulletPosition = _tankTurret.GlobalPosition + _turretOffset.Rotated(Mathf.Deg2Rad(bulletRotation));
             Rpc(nameof(PlayerShoot), _bulletScene, bulletPosition, bulletRotation, GetTree().GetNetworkUniqueId());
         }
@@ -87,7 +86,7 @@ public class Player : KinematicBody2D
     {
         //turret angle code
         double mouseAngle =
-            Math.Round(Mathf.Rad2Deg(_tankTurret.GlobalPosition.AngleToPoint(GetGlobalMousePosition()))) - 90;
+            Math.Round(Mathf.Rad2Deg(_tankTurret.GlobalPosition.AngleToPoint(GetGlobalMousePosition()))) + 90;
         _turretAngle = (float) Math.Round(_tankTurret.GlobalRotationDegrees);
         double turretAngleDifference = AngleDifference(mouseAngle, _turretAngle);
         if (turretAngleDifference > 1)

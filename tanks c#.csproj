@@ -10,6 +10,6 @@
       <EmbeddedResource Remove="test\**" />
     </ItemGroup>
     <ItemGroup>
-      <Content Include="Scripts\XMLSpritesheetImporter.gd" />
+      <Content Include="todo.txt" />
     </ItemGroup>
 </Project>
