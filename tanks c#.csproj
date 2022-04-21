@@ -9,7 +9,4 @@
     <ItemGroup>
       <EmbeddedResource Remove="test\**" />
     </ItemGroup>
-    <ItemGroup>
-      <Content Include="todo.txt" />
-    </ItemGroup>
 </Project>

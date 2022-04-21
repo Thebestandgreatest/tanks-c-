@@ -17,7 +17,7 @@ public class Player : KinematicBody2D
     private Tween _tween;
     
     private double _turretAngle;
-    private Vector2 _turretOffset = new Vector2(0,-70);
+    private Vector2 _turretOffset = new Vector2(0,-72);
     private Vector2 _velocity;
     private double _bodyAngle;
     private bool _canFire = true;
@@ -74,12 +74,11 @@ public class Player : KinematicBody2D
         _velocity = new Vector2();
         _velocity = Input.GetVector("ui_left", "ui_right", "ui_up", "ui_down") * TankSpeed;
 
-        if (Input.IsActionPressed("fire") && _canFire)
-        {
-            float bulletRotation = _tankTurret.RotationDegrees + _tankBody.RotationDegrees + 180;
-            Vector2 bulletPosition = _tankTurret.GlobalPosition + _turretOffset.Rotated(Mathf.Deg2Rad(bulletRotation));
-            Rpc(nameof(PlayerShoot), _bulletScene, bulletPosition, bulletRotation, GetTree().GetNetworkUniqueId());
-        }
+        if (!Input.IsActionPressed("fire") || !_canFire) return;
+        float bulletRotation = _tankTurret.RotationDegrees + _tankBody.RotationDegrees + 180;
+        Vector2 bulletPosition = _tankTurret.GlobalPosition + _turretOffset.Rotated(Mathf.Deg2Rad(bulletRotation));
+        Rpc(nameof(PlayerShoot), _bulletScene, bulletPosition, bulletRotation, GetTree().GetNetworkUniqueId());
+        //PlayerShoot(_bulletScene, bulletPosition, bulletRotation, GetTree().GetNetworkUniqueId());
     }
 
     private void Animate()
@@ -111,11 +110,10 @@ public class Player : KinematicBody2D
 
     private static double AngleDifference(double testAngle, double currentAngle)
     {
-        // Takes two angles in degrees and compares the distance between the angles, works for all angles including those outside of [-360,360]
         double diff = (currentAngle - testAngle + 180) % 360 - 180;
         return diff < -180 ? diff + 360 : diff;
     }
-
+    
     [Sync]
     private async void PlayerShoot(PackedScene bullet, Vector2 bulletPosition, float bulletRotation, int id)
     {

@@ -78,7 +78,8 @@ public class Lobby : Panel
 	public void OnHostPressed()
 	{
 		Hide();
-		
+
+		GD.Print("Server");
 		OS.SetWindowTitle("Server");
 		Hide();
 		_network.CreateServer();
@@ -88,6 +89,7 @@ public class Lobby : Panel
 
 	public void OnJoinPressed()
 	{
+		GD.Print("Client");
 		OS.SetWindowTitle("Client");
 		string[] address = _address.Text.Split(":");
 

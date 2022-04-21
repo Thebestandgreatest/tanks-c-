@@ -8,9 +8,23 @@ public class Basic : KinematicBody2D
 
     private const int Speed = 400;
 
+    [Puppet] private Vector2 _puppetPosition = new Vector2();
+    [Puppet] private Vector2 _puppetVelocity = new Vector2();
+    
     public override void _PhysicsProcess(float delta)
     {
-        MoveAndSlide(_velocity.Rotated(Rotation - Mathf.Pi / 2) * Speed);
+        if (IsNetworkMaster())
+        {
+            _velocity = MoveAndSlide(_velocity.Normalized().Rotated(Rotation) * Speed);
+
+            RsetUnreliable(nameof(_puppetPosition), GlobalPosition);
+            RsetUnreliable(nameof(_puppetVelocity), _velocity);
+        }
+        else
+        {
+            GlobalPosition = _puppetPosition;
+            _velocity = _puppetVelocity;
+        }
     }
 
 }
