@@ -78,7 +78,7 @@ public class Player : KinematicBody2D
         _velocity = Input.GetVector("ui_left", "ui_right", "ui_up", "ui_down") * TankSpeed;
 
         if (!Input.IsActionPressed("fire") || !_canFire) return;
-        float bulletRotation = _tankTurret.RotationDegrees + _tankBody.RotationDegrees + 180;
+        float bulletRotation = _tankTurret.RotationDegrees + _tankBody.RotationDegrees;
         Vector2 bulletPosition = _tankTurret.GlobalPosition + _turretOffset.Rotated(Mathf.Deg2Rad(bulletRotation));
         Rpc(nameof(PlayerShoot), bulletPosition, bulletRotation, GetTree().GetNetworkUniqueId());
         //PlayerShoot(bulletPosition, bulletRotation, GetTree().GetNetworkUniqueId());
