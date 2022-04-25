@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/shotThin.png-ecc659f5a3b5f4680540c5946813a07c.stex"
+path="res://.import/shotThin.png-eeddf7abdb1eed2620cc1b739ea9064b.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/Sprites/shotThin.png"
-dest_files=[ "res://.import/shotThin.png-ecc659f5a3b5f4680540c5946813a07c.stex" ]
+source_file="res://Assets/sprites/shotThin.png"
+dest_files=[ "res://.import/shotThin.png-eeddf7abdb1eed2620cc1b739ea9064b.stex" ]
 
 [params]
 

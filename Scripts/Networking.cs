@@ -8,12 +8,12 @@ public class Networking : Node
     public const int DefaultPort = 5672;
     private const int MaxPlayers = 10;
 
-    private NetworkedMultiplayerENet _server = null;
-    private NetworkedMultiplayerENet _client = null;
+    private NetworkedMultiplayerENet _server;
+    private NetworkedMultiplayerENet _client;
 
     public int BulletIndex = 1;
 
-    public Dictionary<int, string> _players = new Dictionary<int,string>();
+    public readonly Dictionary<int, string> Players = new Dictionary<int,string>();
 
     public override void _Ready()
     {
@@ -48,6 +48,6 @@ public class Networking : Node
 
     public void AddPlayer(int id, string name)
     {
-        _players.Add(id, name);
+        Players.Add(id, name);
     }
 }

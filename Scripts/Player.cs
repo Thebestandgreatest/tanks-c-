@@ -2,6 +2,7 @@ using System;
 using Godot;
 
 // ReSharper disable once CheckNamespace
+// ReSharper disable once UnusedType.Global
 // ReSharper disable once ClassNeverInstantiated.Global
 public class Player : KinematicBody2D
 {
@@ -15,6 +16,7 @@ public class Player : KinematicBody2D
     private Sprite _tankTurret;
     private Timer _timer;
     private Tween _tween;
+    public static Camera2D _camera;
     
     private double _turretAngle;
     private Vector2 _turretOffset = new Vector2(0,-72);
@@ -39,6 +41,7 @@ public class Player : KinematicBody2D
         _tankBody = GetNode<CollisionPolygon2D>("CollisionShape2D");
         _timer = GetNode<Timer>("Timer");
         _tween = GetNode<Tween>("Tween");
+        _camera = GetNode<Camera2D>("Camera2D");
     }
 
     public override void _PhysicsProcess(float delta)
@@ -77,8 +80,8 @@ public class Player : KinematicBody2D
         if (!Input.IsActionPressed("fire") || !_canFire) return;
         float bulletRotation = _tankTurret.RotationDegrees + _tankBody.RotationDegrees + 180;
         Vector2 bulletPosition = _tankTurret.GlobalPosition + _turretOffset.Rotated(Mathf.Deg2Rad(bulletRotation));
-        Rpc(nameof(PlayerShoot), _bulletScene, bulletPosition, bulletRotation, GetTree().GetNetworkUniqueId());
-        //PlayerShoot(_bulletScene, bulletPosition, bulletRotation, GetTree().GetNetworkUniqueId());
+        Rpc(nameof(PlayerShoot), bulletPosition, bulletRotation, GetTree().GetNetworkUniqueId());
+        //PlayerShoot(bulletPosition, bulletRotation, GetTree().GetNetworkUniqueId());
     }
 
     private void Animate()
@@ -115,12 +118,12 @@ public class Player : KinematicBody2D
     }
     
     [Sync]
-    private async void PlayerShoot(PackedScene bullet, Vector2 bulletPosition, float bulletRotation, int id)
+    private async void PlayerShoot(Vector2 bulletPosition, float bulletRotation, int id)
     {
-        Node2D bulletInstance = Global.InstanceNodeAtLocation(bullet, GetTree().Root.GetNode("Players"), bulletPosition, bulletRotation);
-        bulletInstance.Name = "Bullet " + _network.BulletIndex;
-        bulletInstance.SetNetworkMaster(id);
-        _network.BulletIndex++;
+        Node2D bulletInstance = Global.InstanceNodeAtLocation(_bulletScene, GetTree().Root.GetNode("Players"), bulletPosition, bulletRotation);
+        // bulletInstance.Name = "Bullet " + _network.BulletIndex;
+        // bulletInstance.SetNetworkMaster(id);
+        // _network.BulletIndex++;
 
         _canFire = false;
         _timer.Start((float) 0.5);

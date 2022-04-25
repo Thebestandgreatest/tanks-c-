@@ -7,7 +7,7 @@ using Godot;
 public class Lobby : Panel
 {
 	private PackedScene _player;
-	private Node2D _players;
+	private Node2D _world;
 	
 	private LineEdit _address;
 	private Button _hostButton;
@@ -32,7 +32,7 @@ public class Lobby : Panel
 		// autoloads
 		_network = GetNode<Networking>("/root/Network");
 		_global = GetNode<Global>("/root/Global");
-		_players = GetNode<Node2D>("/root/Players");
+		_world = GetNode<Node2D>("/root/Players");
 		
 		// join panel
 		_address = GetNode<LineEdit>("Address");
@@ -69,9 +69,9 @@ public class Lobby : Panel
 	private void PlayerDisconnected(int id)
 	{
 		GD.Print("Player " + id + " disconnected");
-		if (_players.HasNode(id.ToString()))
+		if (_world.HasNode(id.ToString()))
 		{
-			_players.GetNode(id.ToString()).QueueFree();
+			_world.GetNode(id.ToString()).QueueFree();
 		}
 	}
 
@@ -79,7 +79,7 @@ public class Lobby : Panel
 	{
 		Hide();
 
-		GD.Print("Server");
+		 Console.WriteLine("Server");
 		OS.SetWindowTitle("Server");
 		Hide();
 		_network.CreateServer();
@@ -89,7 +89,7 @@ public class Lobby : Panel
 
 	public void OnJoinPressed()
 	{
-		GD.Print("Client");
+		Console.WriteLine("Client");
 		OS.SetWindowTitle("Client");
 		string[] address = _address.Text.Split(":");
 
@@ -99,7 +99,7 @@ public class Lobby : Panel
 		{
 			port = address[1].ToInt();
 		}
-		catch (Exception e)
+		catch
 		{
 			port = Networking.DefaultPort;
 		}
@@ -128,12 +128,12 @@ public class Lobby : Panel
 		//todo: add names
 		_network.AddPlayer(id, "");
 		Node2D playerInstance =
-			Global.InstanceNodeAtLocation(_player, _players, new Vector2((float) GD.RandRange(0, 500), (float) GD.RandRange(0, 500)));
+			Global.InstanceNodeAtLocation(_player, _world, new Vector2((float) GD.RandRange(0, 500), (float) GD.RandRange(0, 500)));
 		playerInstance.Name = id.ToString();
 		playerInstance.SetNetworkMaster(id);
 		playerInstance.PauseMode = PauseModeEnum.Stop;
 		GetTree().Paused = true;
-		GD.Print(_network._players);
+		GD.Print(_network.Players);
 	}
 
 	private void PreStartGame()
@@ -145,7 +145,7 @@ public class Lobby : Panel
 	[Sync]
 	private void RefreshLobby()
 	{
-		foreach (KeyValuePair<int, string> player in _network._players)
+		foreach (KeyValuePair<int, string> player in _network.Players)
 		{
 			_teamAList.AddItem(player.Value);
 		}
@@ -155,6 +155,7 @@ public class Lobby : Panel
 	private void StartGame()
 	{
 		_playerPanel.Hide();
+		Player._camera.Current = true;
 		GetTree().Paused = false;
 	}
 	
