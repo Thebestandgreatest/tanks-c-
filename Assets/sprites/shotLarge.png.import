@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/shotLarge.png-d6d2f5c78b5bd97fc495daf83f421601.stex"
+path="res://.import/shotLarge.png-b3768051c6ca7582bd242ed6e0ccfea8.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/sprites/shotLarge.png"
-dest_files=[ "res://.import/shotLarge.png-d6d2f5c78b5bd97fc495daf83f421601.stex" ]
+source_file="res://Assets/Sprites/shotLarge.png"
+dest_files=[ "res://.import/shotLarge.png-b3768051c6ca7582bd242ed6e0ccfea8.stex" ]
 
 [params]
 

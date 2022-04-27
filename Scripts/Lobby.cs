@@ -126,6 +126,7 @@ public class Lobby : Panel
 	private void InstancePlayer(int id)
 	{
 		//todo: add names
+		GetTree().Paused = true;
 		_network.AddPlayer(id, "");
 		Node2D playerInstance =
 			Global.InstanceNodeAtLocation(_player, _world, new Vector2((float) GD.RandRange(0, 500), (float) GD.RandRange(0, 500)));
@@ -155,7 +156,6 @@ public class Lobby : Panel
 	private void StartGame()
 	{
 		_playerPanel.Hide();
-		Player._camera.Current = true;
 		GetTree().Paused = false;
 	}
 	
