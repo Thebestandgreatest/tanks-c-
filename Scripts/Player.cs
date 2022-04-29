@@ -133,8 +133,10 @@ public class Player : KinematicBody2D
         _canFire = true;
     }
 
-    public void BulletHit()
+    [Sync]
+    public void BulletHit(int id)
     {
+        if (id != Name.ToInt()) return;
         if (_playerHealth >= 0)
         {
             _tankBody.Hide();

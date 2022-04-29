@@ -13,7 +13,7 @@ public class Networking : Node
 
     public int BulletIndex = 1;
 
-    public readonly Dictionary<int, string> Players = new Dictionary<int,string>();
+    public static readonly Dictionary<int, string> Players = new Dictionary<int,string>();
 
     public override void _Ready()
     {
@@ -46,7 +46,7 @@ public class Networking : Node
         GetTree().NetworkPeer = null;
     }
 
-    public void AddPlayer(int id, string name)
+    public static void AddPlayer(int id, string name)
     {
         Players.Add(id, name);
     }

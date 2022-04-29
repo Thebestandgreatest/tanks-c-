@@ -16,7 +16,6 @@ public class Basic : KinematicBody2D
         if (IsNetworkMaster())
         {
             KinematicCollision2D collision = MoveAndCollide(_velocity.Normalized().Rotated(Rotation + Mathf.Pi / 2) * Speed * delta);
-            //_velocity = MoveAndSlide(_velocity.Normalized().Rotated(Rotation + Mathf.Pi / 2) * Speed);
             if (collision != null)
             {
                 Hide();
@@ -26,10 +25,11 @@ public class Basic : KinematicBody2D
                     Rpc(nameof(DeleteBullet), Name);
                 } else if (collider.IsInGroup("Player"))
                 {
-                    PrintTreePretty();
+                    GetTree().Root.PrintTreePretty();
                     Console.WriteLine();
                     Console.WriteLine(collider.Name);
-                    RpcId(collider.Name.ToInt(), nameof(Player.BulletHit));
+                    Console.WriteLine(Networking.Players);
+                    Rpc(nameof(Player.BulletHit), collider.Name);
                     Rpc(nameof(DeleteBullet), Name);
                 }
             }

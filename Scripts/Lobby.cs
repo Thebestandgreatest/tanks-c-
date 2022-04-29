@@ -128,7 +128,7 @@ public class Lobby : Panel
 	{
 		//todo: add names
 		GetTree().Paused = true;
-		_network.AddPlayer(id, "");
+		Networking.AddPlayer(id, "");
 		Node2D playerInstance =
 			Global.InstanceNodeAtLocation(_player, _world, new Vector2((float) GD.RandRange(-1700, 1700), (float) GD.RandRange(-1400, 1600)));
 		playerInstance.Name = id.ToString();
@@ -147,7 +147,7 @@ public class Lobby : Panel
 	private void RefreshLobby()
 	{
 		Console.WriteLine("refresh lobby");
-		foreach (KeyValuePair<int, string> player in _network.Players)
+		foreach (KeyValuePair<int, string> player in Networking.Players)
 		{
 			_teamAList.AddItem(player.Value);
 		}
