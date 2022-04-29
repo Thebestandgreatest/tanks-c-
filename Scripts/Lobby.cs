@@ -121,6 +121,7 @@ public class Lobby : Panel
 	private void ConnectedToServer()
 	{
 		InstancePlayer(GetTree().GetNetworkUniqueId());
+		RefreshLobby();
 	}
 	
 	private void InstancePlayer(int id)
@@ -146,6 +147,7 @@ public class Lobby : Panel
 	[Sync]
 	private void RefreshLobby()
 	{
+		Console.WriteLine("refresh lobby");
 		foreach (KeyValuePair<int, string> player in _network.Players)
 		{
 			_teamAList.AddItem(player.Value);

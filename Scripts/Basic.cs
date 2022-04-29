@@ -1,6 +1,4 @@
-using System;
 using Godot;
-using Object = Godot.Object;
 
 // ReSharper disable once CheckNamespace
 // ReSharper disable once UnusedType.Global
@@ -16,16 +14,22 @@ public class Basic : KinematicBody2D
         _velocity = new Vector2(1,0);
         if (IsNetworkMaster())
         {
-            KinematicCollision2D collision = MoveAndCollide(_velocity.Normalized().Rotated(Rotation + Mathf.Pi / 2) * Speed);
+            KinematicCollision2D collision = MoveAndCollide(_velocity.Normalized().Rotated(Rotation + Mathf.Pi / 2) * Speed * delta);
+            //_velocity = MoveAndSlide(_velocity.Normalized().Rotated(Rotation + Mathf.Pi / 2) * Speed);
             if (collision != null)
             {
-                var collider = collision.Collider;
-                
+                Node2D collider = (Node2D) collision.Collider;
+                if (collider.IsInGroup("Level"))
+                {
+                    Rpc(nameof(DeleteBullet), GetInstanceId());
+                    QueueFree();
+                } else if (collider.IsInGroup("Player"))
+                {
+                    RpcId(collider.Name.ToInt(), nameof(Player.BulletHit));
+                    QueueFree();
+                }
             }
-            
             RsetUnreliable(nameof(_puppetPosition), GlobalPosition);
-            
-            
         }
         else
         {
@@ -33,4 +37,9 @@ public class Basic : KinematicBody2D
         }
     }
 
+    [Sync]
+    private void DeleteBullet(int id)
+    {
+        
+    }
 }

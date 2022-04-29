@@ -128,12 +128,18 @@ public class Player : KinematicBody2D
     {
         Node2D bulletInstance = Global.InstanceNodeAtLocation(_bulletScene, GetTree().Root.GetNode("Players"), bulletPosition, bulletRotation);
         bulletInstance.Name = "Bullet " + _network.BulletIndex;
-        bulletInstance.SetNetworkMaster(id);
+        bulletInstance.SetNetworkMaster(0);
         _network.BulletIndex++;
 
         _canFire = false;
         _timer.Start((float) 0.5);
         await ToSignal(_timer, "timeout");
         _canFire = true;
+    }
+
+    public void BulletHit()
+    {
+        //playerlife--;
+        //if playerlife >= 0 explode yourself
     }
 }
