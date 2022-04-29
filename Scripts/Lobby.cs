@@ -62,13 +62,13 @@ public class Lobby : Panel
 
 	private void PlayerConnected(int id)
 	{
-		GD.Print("Player " + id + " connected");
+		Console.WriteLine($"Player {id} connected");
 		InstancePlayer(id);
 	}
 
 	private void PlayerDisconnected(int id)
 	{
-		GD.Print("Player " + id + " disconnected");
+		Console.WriteLine($"Player {id} disconnected");
 		if (_world.HasNode(id.ToString()))
 		{
 			_world.GetNode(id.ToString()).QueueFree();
@@ -130,12 +130,11 @@ public class Lobby : Panel
 		GetTree().Paused = true;
 		_network.AddPlayer(id, "");
 		Node2D playerInstance =
-			Global.InstanceNodeAtLocation(_player, _world, new Vector2((float) GD.RandRange(0, 500), (float) GD.RandRange(0, 500)));
+			Global.InstanceNodeAtLocation(_player, _world, new Vector2((float) GD.RandRange(-1700, 1700), (float) GD.RandRange(-1400, 1600)));
 		playerInstance.Name = id.ToString();
 		playerInstance.SetNetworkMaster(id);
 		playerInstance.PauseMode = PauseModeEnum.Stop;
 		GetTree().Paused = true;
-		GD.Print(_network.Players);
 	}
 
 	private void PreStartGame()

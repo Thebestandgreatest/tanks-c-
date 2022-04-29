@@ -7,16 +7,16 @@ using Godot;
 public class Player : KinematicBody2D
 {
     // todo: load values from file or server for custom games
-    private const int TankSpeed = 100;
-    private const double TurretRotateSpeed = 1;
+    private const int TankSpeed = 200; //todo: find better value
+    private const double TurretRotateSpeed = 1; //todo: adjust values
     private const double BodyRotateSpeed = 2;
     
     private readonly PackedScene _bulletScene = GD.Load<PackedScene>("res://Scenes/Bullet.tscn");
     private CollisionPolygon2D _tankBody;
     private Sprite _tankTurret;
     private Timer _timer;
-    private Tween _tween;
     private Camera2D _camera;
+    private AnimatedSprite _animatedSprite;
     
     private double _turretAngle;
     private Vector2 _turretOffset = new Vector2(0,-72);
@@ -24,6 +24,7 @@ public class Player : KinematicBody2D
     private double _bodyAngle;
     private bool _canFire = true;
     private bool _gameStarted = false;
+    private int _playerHealth = 3;
 
     private Global _global;
     private Networking _network;
@@ -41,8 +42,8 @@ public class Player : KinematicBody2D
         _tankTurret = GetNode<Sprite>("CollisionShape2D/tankBody/tankTurret");
         _tankBody = GetNode<CollisionPolygon2D>("CollisionShape2D");
         _timer = GetNode<Timer>("Timer");
-        _tween = GetNode<Tween>("Tween");
         _camera = GetNode<Camera2D>("Camera2D");
+        _animatedSprite = GetNode<AnimatedSprite>("AnimatedSprite");
     }
 
     public override void _PhysicsProcess(float delta)
@@ -70,11 +71,6 @@ public class Player : KinematicBody2D
             _tankBody.GlobalRotationDegrees = _puppetBodyRotation;
             _tankTurret.GlobalRotationDegrees = _puppetTurretRotation;
             _velocity = _puppetVelocity;
-            
-            if (!_tween.IsActive())
-            {
-                MoveAndSlide(_puppetVelocity);
-            }
         }
         Animate();
     }
@@ -128,7 +124,7 @@ public class Player : KinematicBody2D
     {
         Node2D bulletInstance = Global.InstanceNodeAtLocation(_bulletScene, GetTree().Root.GetNode("Players"), bulletPosition, bulletRotation);
         bulletInstance.Name = "Bullet " + _network.BulletIndex;
-        bulletInstance.SetNetworkMaster(0);
+        bulletInstance.SetNetworkMaster(id);
         _network.BulletIndex++;
 
         _canFire = false;
@@ -139,7 +135,14 @@ public class Player : KinematicBody2D
 
     public void BulletHit()
     {
-        //playerlife--;
-        //if playerlife >= 0 explode yourself
+        if (_playerHealth >= 0)
+        {
+            _tankBody.Hide();
+            _animatedSprite.Play("explode");
+        }
+        else
+        {
+            _playerHealth--;
+        }
     }
 }
