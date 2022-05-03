@@ -37,7 +37,7 @@ animations = [ {
 "speed": 7.0
 } ]
 
-[node name="Player" type="KinematicBody2D" groups=["Player"]]
+[node name="Player" type="KinematicBody2D"]
 pause_mode = 1
 script = ExtResource( 1 )
 
@@ -81,3 +81,12 @@ one_shot = true
 scale = Vector2( 2, 2 )
 frames = SubResource( 7 )
 animation = "explode"
+
+[node name="Area2D" type="Area2D" parent="." groups=["Player"]]
+
+[node name="CollisionShape2D" type="CollisionPolygon2D" parent="Area2D"]
+scale = Vector2( 2, 2 )
+polygon = PoolVector2Array( -13, -18, 13, -18, 13, -16, 19, -16, 19, 16, 13, 16, 13, 18, -13, 18, -13, 16, -19, 16, -19, -16, -13, -16 )
+__meta__ = {
+"_edit_group_": true
+}

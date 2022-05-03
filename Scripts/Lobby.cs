@@ -75,7 +75,7 @@ public class Lobby : Panel
 		}
 	}
 
-	public void OnHostPressed()
+	internal void OnHostPressed()
 	{
 		Hide();
 
@@ -87,7 +87,7 @@ public class Lobby : Panel
 		PreStartGame();
 	}
 
-	public void OnJoinPressed()
+	internal void OnJoinPressed()
 	{
 		Console.WriteLine("Client");
 		OS.SetWindowTitle("Client");
@@ -160,7 +160,7 @@ public class Lobby : Panel
 		GetTree().Paused = false;
 	}
 	
-	public void OnStartPressed()
+	internal void OnStartPressed()
 	{
 		Rpc(nameof(StartGame));
 	}

@@ -6,13 +6,12 @@
 [sub_resource type="RectangleShape2D" id=1]
 extents = Vector2( 4, 8.5 )
 
-[node name="KinematicBody2D" type="KinematicBody2D" groups=["Bullet"]]
-pause_mode = 1
+[node name="Area2D" type="Area2D" groups=["Bullet"]]
+position = Vector2( 0, -0.5 )
 scale = Vector2( 2, 2 )
 script = ExtResource( 1 )
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2( 0, -0.5 )
 shape = SubResource( 1 )
 
 [node name="Sprite" type="Sprite" parent="CollisionShape2D"]

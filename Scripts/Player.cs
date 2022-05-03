@@ -8,35 +8,37 @@ public class Player : KinematicBody2D
 {
     // todo: load values from file or server for custom games
     private const int TankSpeed = 200; //todo: find better value
-    private const double TurretRotateSpeed = 1; //todo: adjust values
+    private const double TurretRotateSpeed = 2; //todo: adjust values
     private const double BodyRotateSpeed = 2;
     
     private readonly PackedScene _bulletScene = GD.Load<PackedScene>("res://Scenes/Bullet.tscn");
+    
     private CollisionPolygon2D _tankBody;
     private Sprite _tankTurret;
     private Timer _timer;
     private Camera2D _camera;
     private AnimatedSprite _animatedSprite;
+    private Area2D _bulletCollider;
     
     private double _turretAngle;
     private Vector2 _turretOffset = new Vector2(0,-72);
     private Vector2 _velocity;
     private double _bodyAngle;
     private bool _canFire = true;
-    private bool _gameStarted = false;
+    private bool _gameStarted;
     private int _playerHealth = 3;
-
-    private Global _global;
+    private bool _alive = true;
+    
     private Networking _network;
 
     [Puppet] private Vector2 _puppetPosition = new Vector2();
     [Puppet] private Vector2 _puppetVelocity = new Vector2();
     [Puppet] private float _puppetBodyRotation = 0;
     [Puppet] private float _puppetTurretRotation = 0;
+    [Puppet] private int _puppetPlayerHealth = 3;
 
     public override void _Ready()
     {
-        _global = GetNode<Global>("/root/Global");
         _network = GetNode<Networking>("/root/Network");
 
         _tankTurret = GetNode<Sprite>("CollisionShape2D/tankBody/tankTurret");
@@ -44,10 +46,14 @@ public class Player : KinematicBody2D
         _timer = GetNode<Timer>("Timer");
         _camera = GetNode<Camera2D>("Camera2D");
         _animatedSprite = GetNode<AnimatedSprite>("AnimatedSprite");
+        _bulletCollider = GetNode<Area2D>("Area2D");
+
+        _bulletCollider.Connect("area_entered", this, nameof(BulletCollision));
     }
 
     public override void _PhysicsProcess(float delta)
     {
+        if (!_alive) return;
         if (IsNetworkMaster() && _gameStarted == false)
         {
             _camera.Current = true;
@@ -59,6 +65,16 @@ public class Player : KinematicBody2D
             GetInput();
 
             _velocity = MoveAndSlide(_velocity);
+
+            for (int i = 0; i < GetSlideCount(); i++)
+            {
+                KinematicCollision2D collision = GetSlideCollision(i);
+                Node2D collider = (Node2D) collision.Collider;
+                if (collider.IsInGroup("bullet"))
+                {
+                    
+                }
+            }
 
             RsetUnreliable(nameof(_puppetPosition), GlobalPosition);
             RsetUnreliable(nameof(_puppetBodyRotation), _tankBody.GlobalRotationDegrees);
@@ -93,9 +109,12 @@ public class Player : KinematicBody2D
             Math.Round(Mathf.Rad2Deg(_tankTurret.GlobalPosition.AngleToPoint(GetGlobalMousePosition()))) + 90;
         _turretAngle = (float) Math.Round(_tankTurret.GlobalRotationDegrees);
         double turretAngleDifference = AngleDifference(mouseAngle, _turretAngle);
-        if (turretAngleDifference > 1)
+        if (turretAngleDifference >  TurretRotateSpeed)
             _turretAngle -= TurretRotateSpeed;
-        else if (turretAngleDifference < 1) _turretAngle += TurretRotateSpeed;
+        else if (turretAngleDifference < -TurretRotateSpeed)
+        {
+            _turretAngle += TurretRotateSpeed;
+        }
 
         //Mathf.LerpAngle(_tankTurret.GlobalRotationDegrees, (float) Math.Round(_turretAngle), (float) 0.1);
         _tankTurret.GlobalRotationDegrees = (float) Math.Round(_turretAngle);
@@ -111,6 +130,14 @@ public class Player : KinematicBody2D
         else if (bodyAngleDifference < -1) _bodyAngle -= BodyRotateSpeed;
         //Mathf.LerpAngle(_tankTurret.GlobalRotationDegrees, (float) _bodyAngle, (float) 0.1);
         _tankBody.GlobalRotationDegrees = (float) _bodyAngle;
+    }
+
+    private void BulletCollision(Node area)
+    {
+        if (!IsNetworkMaster()) return;
+        if (!area.IsInGroup("Bullet") && area.GetParent().GetTree().GetNetworkUniqueId() == Name.ToInt()) return;
+        Rpc(nameof(BulletHit)); //potentially add damage values
+        area.GetParent().Rpc("DeleteBullet");
     }
 
     private static double AngleDifference(double testAngle, double currentAngle)
@@ -134,13 +161,13 @@ public class Player : KinematicBody2D
     }
 
     [Sync]
-    public void BulletHit(int id)
+    internal void BulletHit()
     {
-        if (id != Name.ToInt()) return;
         if (_playerHealth >= 0)
         {
             _tankBody.Hide();
             _animatedSprite.Play("explode");
+            _alive = false;
         }
         else
         {
