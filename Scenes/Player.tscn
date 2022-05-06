@@ -90,7 +90,7 @@ animation = "explode"
 
 [node name="CollisionShape2D" type="CollisionPolygon2D" parent="Area2D"]
 scale = Vector2( 2, 2 )
-polygon = PoolVector2Array( -13, -18, 13, -18, 13, -16, 19, -16, 19, 16, 13, 16, 13, 18, -13, 18, -13, 16, -19, 16, -19, -16, -13, -16 )
+polygon = PoolVector2Array( -13, -18, 13, -18, 13, -16, 19, -16, 19, -15.0146, 19, 16, 13, 16, 13, 18, -13, 18, -13, 16, -19, 16, -19, -16, -13, -16 )
 __meta__ = {
 "_edit_group_": true
 }

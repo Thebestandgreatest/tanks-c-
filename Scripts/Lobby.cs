@@ -63,7 +63,7 @@ public class Lobby : Panel
 	private void PlayerConnected(int id)
 	{
 		Console.WriteLine($"Player {id} connected");
-		InstancePlayer(id);
+		InstancePlayer(id, _name.Text);
 	}
 
 	private void PlayerDisconnected(int id)
@@ -77,13 +77,20 @@ public class Lobby : Panel
 
 	internal void OnHostPressed()
 	{
+		if (!CheckUsername())
+		{
+			//TODO: move into one function to reuse code
+			_status.Text = "Invalid Username";
+			return;
+		}
+		
 		Hide();
-
-		 Console.WriteLine("Server");
+		
+		Console.WriteLine("Server");
 		OS.SetWindowTitle("Server");
 		Hide();
 		_network.CreateServer();
-		InstancePlayer(GetTree().GetNetworkUniqueId());
+		InstancePlayer(GetTree().GetNetworkUniqueId(), _name.Text);
 		PreStartGame();
 	}
 
@@ -92,6 +99,13 @@ public class Lobby : Panel
 		Console.WriteLine("Client");
 		OS.SetWindowTitle("Client");
 		string[] address = _address.Text.Split(":");
+
+		if (!CheckUsername())
+		{
+			_status.Text = "Invalid Username";
+			return;
+		}
+		
 
 		string ip = address[0];
 		int port;
@@ -118,17 +132,22 @@ public class Lobby : Panel
 		PreStartGame();
 	}
 
+	private bool CheckUsername()
+	{
+		return _name.Text.Trim() != "";
+	}
+
 	private void ConnectedToServer()
 	{
-		InstancePlayer(GetTree().GetNetworkUniqueId());
-		RefreshLobby();
+		InstancePlayer(GetTree().GetNetworkUniqueId(), _name.Text);
+		Rpc(nameof(RefreshLobby));
 	}
 	
-	private void InstancePlayer(int id)
+	private void InstancePlayer(int id, string name)
 	{
 		//todo: add names
 		GetTree().Paused = true;
-		Networking.AddPlayer(id, "");
+		Networking.AddPlayer(id, name);
 		Node2D playerInstance =
 			Global.InstanceNodeAtLocation(_player, _world, new Vector2((float) GD.RandRange(-1700, 1700), (float) GD.RandRange(-1400, 1600)));
 		playerInstance.Name = id.ToString();

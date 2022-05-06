@@ -19,9 +19,9 @@ public class Player : KinematicBody2D
     private Camera2D _camera;
     private AnimatedSprite _animatedSprite;
     private Area2D _bulletCollider;
-    
+
     private double _turretAngle;
-    private Vector2 _turretOffset = new Vector2(0,-72);
+    private Vector2 _turretOffset = new Vector2(0,-80);
     private Vector2 _velocity;
     private double _bodyAngle;
     private bool _canFire = true;
@@ -65,16 +65,6 @@ public class Player : KinematicBody2D
             GetInput();
 
             _velocity = MoveAndSlide(_velocity);
-
-            for (int i = 0; i < GetSlideCount(); i++)
-            {
-                KinematicCollision2D collision = GetSlideCollision(i);
-                Node2D collider = (Node2D) collision.Collider;
-                if (collider.IsInGroup("bullet"))
-                {
-                    
-                }
-            }
 
             RsetUnreliable(nameof(_puppetPosition), GlobalPosition);
             RsetUnreliable(nameof(_puppetBodyRotation), _tankBody.GlobalRotationDegrees);
@@ -135,7 +125,7 @@ public class Player : KinematicBody2D
     private void BulletCollision(Node area)
     {
         if (!IsNetworkMaster()) return;
-        if (!area.IsInGroup("Bullet") && area.GetParent().GetTree().GetNetworkUniqueId() == Name.ToInt()) return;
+        if (!area.IsInGroup("Bullet") || area.GetParent().GetTree().GetNetworkUniqueId() != Name.ToInt()) return;
         Rpc(nameof(BulletHit)); //potentially add damage values
         area.GetParent().Rpc("DeleteBullet");
     }
@@ -167,6 +157,7 @@ public class Player : KinematicBody2D
         {
             _tankBody.Hide();
             _animatedSprite.Play("explode");
+            _tankBody.Disabled = true;
             _alive = false;
         }
         else
