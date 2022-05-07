@@ -52,14 +52,14 @@ __meta__ = {
 "_edit_group_": true
 }
 
-[node name="tankBody" type="Sprite" parent="CollisionShape2D"]
+[node name="TankBody" type="Sprite" parent="CollisionShape2D"]
 texture = ExtResource( 2 )
 hframes = 5
 __meta__ = {
 "_edit_group_": true
 }
 
-[node name="tankTurret" type="Sprite" parent="CollisionShape2D/tankBody"]
+[node name="TankTurret" type="Sprite" parent="CollisionShape2D/TankBody"]
 position = Vector2( 0, 3.5 )
 rotation = 3.14159
 texture = ExtResource( 3 )
@@ -71,12 +71,11 @@ __meta__ = {
 
 [node name="Camera2D" type="Camera2D" parent="."]
 
-[node name="Label" type="Label" parent="."]
-margin_right = 40.0
-margin_bottom = 14.0
-__meta__ = {
-"_edit_use_anchors_": false
-}
+[node name="NameLabel" type="Label" parent="."]
+margin_left = -20.0
+margin_top = -52.0
+margin_right = 20.0
+margin_bottom = -38.0
 
 [node name="Timer" type="Timer" parent="."]
 one_shot = true
@@ -94,3 +93,5 @@ polygon = PoolVector2Array( -13, -18, 13, -18, 13, -16, 19, -16, 19, -15.0146, 1
 __meta__ = {
 "_edit_group_": true
 }
+
+[node name="RespawnTimer" type="Timer" parent="."]

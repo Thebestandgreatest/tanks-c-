@@ -6,6 +6,9 @@ using Godot;
 // ReSharper disable once UnusedType.Global
 public class Lobby : Panel
 {
+	private static Dictionary<int, string> Players = new Dictionary<int, string>();
+	private static Dictionary<int, bool> PlayersAlive = new Dictionary<int, bool>();
+
 	private PackedScene _player;
 	private Node2D _world;
 	
@@ -20,10 +23,8 @@ public class Lobby : Panel
 	private Button _startButton;
 	private Label _status;
 	private ItemList _teamAList;
-	private ItemList _teamBList;
 
 	private Networking _network;
-	private Global _global;
 
 	public override void _Ready()
 	{
@@ -31,7 +32,7 @@ public class Lobby : Panel
 		
 		// autoloads
 		_network = GetNode<Networking>("/root/Network");
-		_global = GetNode<Global>("/root/Global");
+		GetNode<Global>("/root/Global");
 		_world = GetNode<Node2D>("/root/Players");
 		
 		// join panel
@@ -47,7 +48,7 @@ public class Lobby : Panel
 		// player panel
 		_playerPanel = GetNode<Panel>("../Players");
 		_teamAList = _playerPanel.GetNode<ItemList>("Team A List");
-		_teamBList = _playerPanel.GetNode<ItemList>("Team B List");
+		_playerPanel.GetNode<ItemList>("Team B List");
 		_startButton = _playerPanel.GetNode<Button>("Start");
 
 		// button signals
@@ -63,28 +64,21 @@ public class Lobby : Panel
 	private void PlayerConnected(int id)
 	{
 		Console.WriteLine($"Player {id} connected");
-		InstancePlayer(id, _name.Text);
+		InstancePlayer(id, "");
 	}
 
 	private void PlayerDisconnected(int id)
 	{
 		Console.WriteLine($"Player {id} disconnected");
-		if (_world.HasNode(id.ToString()))
+		if (_world.HasNode($"Players/{id.ToString()}"))
 		{
-			_world.GetNode(id.ToString()).QueueFree();
+			_world.GetNode($"Players/{id.ToString()}").QueueFree();
 		}
 	}
 
 	internal void OnHostPressed()
 	{
-		if (!CheckUsername())
-		{
-			//TODO: move into one function to reuse code
-			_status.Text = "Invalid Username";
-			return;
-		}
-		
-		Hide();
+		if (!CheckUsername()) return;
 		
 		Console.WriteLine("Server");
 		OS.SetWindowTitle("Server");
@@ -96,17 +90,12 @@ public class Lobby : Panel
 
 	internal void OnJoinPressed()
 	{
+		if (!CheckUsername()) return;
+
 		Console.WriteLine("Client");
 		OS.SetWindowTitle("Client");
 		string[] address = _address.Text.Split(":");
-
-		if (!CheckUsername())
-		{
-			_status.Text = "Invalid Username";
-			return;
-		}
 		
-
 		string ip = address[0];
 		int port;
 		try
@@ -134,7 +123,10 @@ public class Lobby : Panel
 
 	private bool CheckUsername()
 	{
-		return _name.Text.Trim() != "";
+		if (_name.Text.Trim() != "") return true;
+		_status.Text = "Invalid Username";
+		return false;
+
 	}
 
 	private void ConnectedToServer()
@@ -145,14 +137,12 @@ public class Lobby : Panel
 	
 	private void InstancePlayer(int id, string name)
 	{
-		//todo: add names
 		GetTree().Paused = true;
-		Networking.AddPlayer(id, name);
+		Players.Add(id, name);
 		Node2D playerInstance =
 			Global.InstanceNodeAtLocation(_player, _world, new Vector2((float) GD.RandRange(-1700, 1700), (float) GD.RandRange(-1400, 1600)));
 		playerInstance.Name = id.ToString();
 		playerInstance.SetNetworkMaster(id);
-		playerInstance.PauseMode = PauseModeEnum.Stop;
 		GetTree().Paused = true;
 	}
 
@@ -162,11 +152,11 @@ public class Lobby : Panel
 		RefreshLobby();
 	}
 
-	[Sync]
+	[RemoteSync]
 	private void RefreshLobby()
 	{
-		Console.WriteLine("refresh lobby");
-		foreach (KeyValuePair<int, string> player in Networking.Players)
+		Console.WriteLine(Players);
+		foreach (KeyValuePair<int, string> player in Players)
 		{
 			_teamAList.AddItem(player.Value);
 		}

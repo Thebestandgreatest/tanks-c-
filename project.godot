@@ -28,10 +28,6 @@ multirun/add_custom_args=true
 multirun/first_window_args="listen"
 multirun/other_window_args="join"
 
-[editor_plugins]
-
-enabled=PoolStringArray( "res://addons/atlas_importer3/plugin.cfg" )
-
 [input]
 
 ui_left={

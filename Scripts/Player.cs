@@ -7,8 +7,8 @@ using Godot;
 public class Player : KinematicBody2D
 {
     // todo: load values from file or server for custom games
-    private const int TankSpeed = 200; //todo: find better value
-    private const double TurretRotateSpeed = 2; //todo: adjust values
+    private const int TankSpeed = 200;
+    private const double TurretRotateSpeed = 2;
     private const double BodyRotateSpeed = 2;
     
     private readonly PackedScene _bulletScene = GD.Load<PackedScene>("res://Scenes/Bullet.tscn");
@@ -35,13 +35,12 @@ public class Player : KinematicBody2D
     [Puppet] private Vector2 _puppetVelocity = new Vector2();
     [Puppet] private float _puppetBodyRotation = 0;
     [Puppet] private float _puppetTurretRotation = 0;
-    [Puppet] private int _puppetPlayerHealth = 3;
 
     public override void _Ready()
     {
         _network = GetNode<Networking>("/root/Network");
 
-        _tankTurret = GetNode<Sprite>("CollisionShape2D/tankBody/tankTurret");
+        _tankTurret = GetNode<Sprite>("CollisionShape2D/TankBody/TankTurret");
         _tankBody = GetNode<CollisionPolygon2D>("CollisionShape2D");
         _timer = GetNode<Timer>("Timer");
         _camera = GetNode<Camera2D>("Camera2D");

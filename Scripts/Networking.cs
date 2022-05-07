@@ -1,5 +1,4 @@
 using Godot;
-using Godot.Collections;
 
 // ReSharper disable once CheckNamespace
 // ReSharper disable once ClassNeverInstantiated.Global
@@ -12,9 +11,6 @@ public class Networking : Node
     private NetworkedMultiplayerENet _client;
 
     internal int BulletIndex = 1;
-
-    internal static readonly Dictionary<int, string> Players = new Dictionary<int,string>();
-    private static readonly Dictionary<int, bool> PlayersAlive = new Dictionary<int, bool>();
 
     public override void _Ready()
     {
@@ -45,11 +41,5 @@ public class Networking : Node
     {
         GD.Print("Disconnected from server");
         GetTree().NetworkPeer = null;
-    }
-
-    internal static void AddPlayer(int id, string name)
-    {
-        Players.Add(id, name);
-        PlayersAlive.Add(id, true);
     }
 }
