@@ -154,10 +154,11 @@ public class Player : KinematicBody2D
     {
         if (_playerHealth >= 0)
         {
-            _tankBody.Hide();
-            _animatedSprite.Play("explode");
             _tankBody.Disabled = true;
             _alive = false;
+            _tankBody.Hide();
+            _animatedSprite.Play("explode");
+            
         }
         else
         {

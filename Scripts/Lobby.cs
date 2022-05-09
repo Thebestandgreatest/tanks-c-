@@ -6,8 +6,11 @@ using Godot;
 // ReSharper disable once UnusedType.Global
 public class Lobby : Panel
 {
-	private static Dictionary<int, string> Players = new Dictionary<int, string>();
-	private static Dictionary<int, bool> PlayersAlive = new Dictionary<int, bool>();
+	private static Dictionary<int, string> _players = new Dictionary<int, string>();
+	private static Dictionary<int, bool> _playersAlive = new Dictionary<int, bool>();
+
+	[Puppet] private Dictionary<int, string> PuppetPlayers = new Dictionary<int, string>();
+	[Puppet] private Dictionary<int, bool> PuppetPlayersAlive = new Dictionary<int, bool>();
 
 	private PackedScene _player;
 	private Node2D _world;
@@ -59,12 +62,6 @@ public class Lobby : Panel
 		GetTree().Connect("network_peer_connected", this, nameof(PlayerConnected));
 		GetTree().Connect("network_peer_disconnected", this, nameof(PlayerDisconnected));
 		GetTree().Connect("connected_to_server", this, nameof(ConnectedToServer));
-	}
-
-	private void PlayerConnected(int id)
-	{
-		Console.WriteLine($"Player {id} connected");
-		InstancePlayer(id, "");
 	}
 
 	private void PlayerDisconnected(int id)
@@ -131,12 +128,21 @@ public class Lobby : Panel
 
 	private bool CheckUsername()
 	{
-		if (_name.Text.Trim() != "") return true;
+		if (_name.Text.Trim() != "")
+		{
+			return true;
+		}
 		_status.Text = "Invalid Username";
 		return false;
 
 	}
 
+	private void PlayerConnected(int id)
+	{
+		Console.WriteLine($"Player {id} connected");
+		InstancePlayer(id, "");
+	}
+	
 	private void ConnectedToServer()
 	{
 		InstancePlayer(GetTree().GetNetworkUniqueId(), _name.Text);
@@ -146,7 +152,11 @@ public class Lobby : Panel
 	private void InstancePlayer(int id, string name)
 	{
 		GetTree().Paused = true;
-		Players.Add(id, name);
+		if (IsNetworkMaster())
+		{
+			Rpc(nameof(AddPlayer), id, name);
+		}
+		
 		Node2D playerInstance =
 			Global.InstanceNodeAtLocation(_player, _world, new Vector2((float) GD.RandRange(-1700, 1700), (float) GD.RandRange(-1400, 1600)));
 		playerInstance.Name = id.ToString();
@@ -161,10 +171,28 @@ public class Lobby : Panel
 	}
 
 	[RemoteSync]
+	private void AddPlayer(int id, string name)
+	{
+		_players.Add(id, name);
+		_playersAlive.Add(id, true);
+		if (IsNetworkMaster())
+		{
+			Rset(nameof(PuppetPlayers), _players);
+			Rset(nameof(PuppetPlayersAlive), _playersAlive);
+		}
+		else
+		{
+			_players = PuppetPlayers;
+			_playersAlive = PuppetPlayersAlive;	
+		}
+	}
+	
+	[RemoteSync]
 	private void RefreshLobby()
 	{
-		Console.WriteLine(Players);
-		foreach (KeyValuePair<int, string> player in Players)
+		Dictionary<int, string> playerlist = IsNetworkMaster() ? _players : PuppetPlayers;
+		
+		foreach (KeyValuePair<int, string> player in playerlist)
 		{
 			_teamAList.AddItem(player.Value);
 		}

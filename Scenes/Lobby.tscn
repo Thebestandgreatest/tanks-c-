@@ -41,9 +41,6 @@ margin_top = 24.0
 margin_right = 244.0
 margin_bottom = 44.0
 text = "Host"
-__meta__ = {
-"_edit_use_anchors_": false
-}
 
 [node name="Join" type="Button" parent="Start"]
 margin_left = 196.0
