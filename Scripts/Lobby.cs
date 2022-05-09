@@ -97,6 +97,13 @@ public class Lobby : Panel
 		string[] address = _address.Text.Split(":");
 		
 		string ip = address[0];
+		ip = IP.ResolveHostname(ip);
+		if (ip.Length == 0)
+		{
+			_status.Text = "failed to resolve domain name";
+			return;
+		}
+		
 		int port;
 		try
 		{
@@ -115,6 +122,7 @@ public class Lobby : Panel
 		else
 		{
 			_status.Text = "Invalid ip address";
+			return;
 		}
 
 		_startButton.Disabled = true;
