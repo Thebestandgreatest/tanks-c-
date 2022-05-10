@@ -9,4 +9,7 @@
     <ItemGroup>
       <EmbeddedResource Remove="test\**" />
     </ItemGroup>
+    <ItemGroup>
+      <PackageReference Include="Octokit" Version="0.51.0" />
+    </ItemGroup>
 </Project>

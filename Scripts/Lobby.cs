@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using Godot;
+using Octokit;
+using Label = Godot.Label;
 
 // ReSharper disable once CheckNamespace
 // ReSharper disable once UnusedType.Global
@@ -31,6 +33,8 @@ public class Lobby : Panel
 
 	public override void _Ready()
 	{
+		//CheckVersion();
+		
 		_player = ResourceLoader.Load<PackedScene>("res://Scenes/Player.tscn");
 		
 		// autoloads
@@ -62,6 +66,14 @@ public class Lobby : Panel
 		GetTree().Connect("network_peer_connected", this, nameof(PlayerConnected));
 		GetTree().Connect("network_peer_disconnected", this, nameof(PlayerDisconnected));
 		GetTree().Connect("connected_to_server", this, nameof(ConnectedToServer));
+	}
+
+	private async void CheckVersion()
+	{
+		//TODO figure out version checking system
+		GitHubClient client = new GitHubClient(new ProductHeaderValue("tanks c-"));
+		Release releases = await client.Repository.Release.GetLatest("thebestandgreatest", "tanks c-");
+		Console.WriteLine(releases.Id);
 	}
 
 	private void PlayerDisconnected(int id)
