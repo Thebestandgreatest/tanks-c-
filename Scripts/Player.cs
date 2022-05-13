@@ -6,7 +6,6 @@ using Godot;
 // ReSharper disable once ClassNeverInstantiated.Global
 public class Player : KinematicBody2D
 {
-    // todo: load values from file or server for custom games
     private const int TankSpeed = 200;
     private const double TurretRotateSpeed = 2;
     private const double BodyRotateSpeed = 2;
@@ -124,9 +123,11 @@ public class Player : KinematicBody2D
     private void BulletCollision(Node area)
     {
         if (!IsNetworkMaster()) return;
-        if (!area.IsInGroup("Bullet") || area.GetParent().GetTree().GetNetworkUniqueId() != Name.ToInt()) return;
-        Rpc(nameof(BulletHit)); //potentially add damage values
+        if (!area.IsInGroup("Bullet") || area.GetParent().GetTree().GetNetworkUniqueId() != Name.ToInt() ||
+            _tankBody.Disabled) return;
+        Console.WriteLine(_tankBody.Disabled);
         area.GetParent().Rpc("DeleteBullet");
+        Rpc(nameof(BulletHit));
     }
 
     private static double AngleDifference(double testAngle, double currentAngle)
@@ -152,13 +153,12 @@ public class Player : KinematicBody2D
     [Sync]
     internal void BulletHit()
     {
-        if (_playerHealth >= 0)
+        if (_playerHealth <= 0)
         {
-            _tankBody.Disabled = true;
+            _tankBody.SetDeferred("disabled", true);
             _alive = false;
             _tankBody.Hide();
             _animatedSprite.Play("explode");
-            
         }
         else
         {

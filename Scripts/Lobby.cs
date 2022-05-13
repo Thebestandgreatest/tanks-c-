@@ -1,20 +1,17 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
-using Octokit;
-using Label = Godot.Label;
 
 // ReSharper disable once CheckNamespace
 // ReSharper disable once UnusedType.Global
+// ReSharper disable once ClassNeverInstantiated.Global
 public class Lobby : Panel
 {
-	private static Dictionary<int, string> _players = new Dictionary<int, string>();
-	private static Dictionary<int, bool> _playersAlive = new Dictionary<int, bool>();
+	private static readonly Dictionary<int, string> Players = new Dictionary<int, string>();
+	private static readonly Dictionary<int, bool> PlayersAlive = new Dictionary<int, bool>();
 
-	[PuppetSync] private Dictionary<int, string> _puppetPlayers = new Dictionary<int, string>();
-	[PuppetSync] private Dictionary<int, bool> _puppetPlayersAlive = new Dictionary<int, bool>();
-
-	private PackedScene _player;
+	private PackedScene _playerScene;
 	private Node2D _world;
 	
 	private LineEdit _address;
@@ -33,9 +30,7 @@ public class Lobby : Panel
 
 	public override void _Ready()
 	{
-		//CheckVersion();
-		
-		_player = ResourceLoader.Load<PackedScene>("res://Scenes/Player.tscn");
+		_playerScene = ResourceLoader.Load<PackedScene>("res://Scenes/Player.tscn");
 		
 		// autoloads
 		_network = GetNode<Networking>("/root/Network");
@@ -66,14 +61,6 @@ public class Lobby : Panel
 		GetTree().Connect("network_peer_connected", this, nameof(PlayerConnected));
 		GetTree().Connect("network_peer_disconnected", this, nameof(PlayerDisconnected));
 		GetTree().Connect("connected_to_server", this, nameof(ConnectedToServer));
-	}
-
-	private async void CheckVersion()
-	{
-		//TODO figure out version checking system
-		GitHubClient client = new GitHubClient(new ProductHeaderValue("tanks c-"));
-		Release releases = await client.Repository.Release.GetLatest("thebestandgreatest", "tanks c-");
-		Console.WriteLine(releases.Id);
 	}
 
 	private void PlayerDisconnected(int id)
@@ -160,7 +147,7 @@ public class Lobby : Panel
 	{
 		InstancePlayer(GetTree().GetNetworkUniqueId());
 		RpcId(1, nameof(AddPlayer), GetTree().GetNetworkUniqueId(), _name.Text);
-		Rpc(nameof(RefreshLobby));
+		RpcId(1, nameof(SendPlayerList));
 	}
 	
 	private void InstancePlayer(int id)
@@ -168,7 +155,7 @@ public class Lobby : Panel
 		GetTree().Paused = true;
 		
 		Node2D playerInstance =
-		Global.InstanceNodeAtLocation(_player, _world, new Vector2((float) GD.RandRange(-17, 17) * 100, (float) GD.RandRange(-14, 16) * 100));
+		Global.InstanceNodeAtLocation(_playerScene, _world, new Vector2((float) GD.RandRange(-17, 17) * 100, (float) GD.RandRange(-14, 16) * 100));
 		playerInstance.Name = id.ToString();
 		playerInstance.SetNetworkMaster(id);
 		GetTree().Paused = true;
@@ -177,45 +164,49 @@ public class Lobby : Panel
 	private void PreStartGame()
 	{
 		_playerPanel.Show();
-		RefreshLobby();
+		UpdateLobby();
 	}
 
 	[Sync]
 	private void AddPlayer(int id, string name)
 	{
-		_players.Add(id, name);
-		_playersAlive.Add(id, true);
+		Players.Add(id, name);
+		PlayersAlive.Add(id, true);
 	}
-	
-	[Sync]
-	private void RefreshLobby()
+
+	[Puppet]
+	private void UpdatePlayerList(int id, string name)
 	{
-		if (GetTree().GetNetworkUniqueId() == 1)
+		Players.Add(id, name);
+		PlayersAlive.Add(id, true);
+	}
+
+	[Puppet]
+	private void ClearPlayerList()
+	{
+		Players.Clear();
+		PlayersAlive.Clear();
+	}
+
+	[Sync]
+	private void SendPlayerList()
+	{
+		Rpc(nameof(ClearPlayerList));
+		foreach (KeyValuePair<int, string> player in Players)
 		{
-			Rset(nameof(_puppetPlayers), _players);
-			Rset(nameof(_puppetPlayersAlive), _playersAlive);
-		}
-		else
-		{
-			_players = _puppetPlayers;
-			_playersAlive = _puppetPlayersAlive;
-		}
-		
-		foreach (KeyValuePair<int, string> variable in _players)
-		{
-			Console.WriteLine(variable);
+			Console.WriteLine(player);
+			Rpc(nameof(UpdatePlayerList), player.Key, player.Value);
 		}
 
-		foreach (KeyValuePair<int, string> variable in _puppetPlayers)
-		{
-			Console.WriteLine(variable);
-		}
-	
-		Dictionary<int, string> playerlist = IsNetworkMaster() ? _players : _puppetPlayers;
-		
+		Rpc(nameof(UpdateLobby));
+	}
+
+	[Sync]
+	private void UpdateLobby()
+	{
 		_teamAList.Clear();
 		
-		foreach (KeyValuePair<int, string> player in playerlist)
+		foreach (KeyValuePair<int, string> player in Players)
 		{
 			_teamAList.AddItem(player.Value);
 		}
@@ -231,5 +222,20 @@ public class Lobby : Panel
 	internal void OnStartPressed()
 	{
 		Rpc(nameof(StartGame));
+	}
+
+	public void PlayerDied(int id)
+	{
+		Console.WriteLine($"player {id} died");
+		
+		PlayersAlive[id] = false;
+
+		int alive = PlayersAlive.Count(player => player.Value);
+
+		if (alive <= 1)
+		{
+			
+			//end game
+		}
 	}
 }
