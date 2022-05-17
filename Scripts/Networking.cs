@@ -4,6 +4,9 @@ using Godot;
 // ReSharper disable once ClassNeverInstantiated.Global
 public class Networking : Node
 {
+    [Signal]
+    internal delegate void PlayerDiedSignal(int id);
+    
     internal const int DefaultPort = 5672;
     private const int MaxPlayers = 10;
 

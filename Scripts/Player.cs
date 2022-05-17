@@ -6,9 +6,6 @@ using Godot;
 // ReSharper disable once ClassNeverInstantiated.Global
 public class Player : KinematicBody2D
 {
-    [Signal]
-    internal delegate void PlayerDied(int id);
-    
     private const int TankSpeed = 200;
     private const double TurretRotateSpeed = 2;
     private const double BodyRotateSpeed = 2;
@@ -50,6 +47,7 @@ public class Player : KinematicBody2D
         _bulletCollider = GetNode<Area2D>("Area2D");
 
         _bulletCollider.Connect("area_entered", this, nameof(BulletCollision));
+        
     }
 
     public override void _PhysicsProcess(float delta)
@@ -128,7 +126,6 @@ public class Player : KinematicBody2D
         if (!IsNetworkMaster()) return;
         if (!area.IsInGroup("Bullet") || area.GetParent().GetTree().GetNetworkUniqueId() != Name.ToInt() ||
             _tankBody.Disabled) return;
-        Console.WriteLine(_tankBody.Disabled);
         area.GetParent().Rpc("DeleteBullet");
         Rpc(nameof(BulletHit));
     }
@@ -156,13 +153,13 @@ public class Player : KinematicBody2D
     [Sync]
     internal void BulletHit()
     {
-        if (_playerHealth <= 0)
+        if (_playerHealth == 0 || _playerHealth < 0)
         {
             _tankBody.SetDeferred("disabled", true);
             _alive = false;
             _tankBody.Hide();
-            EmitSignal(nameof(PlayerDied), GetTree().GetNetworkUniqueId());
             _animatedSprite.Play("explode");
+            _network.EmitSignal("PlayerDiedSignal", GetTree().GetNetworkUniqueId());
         }
         else
         {

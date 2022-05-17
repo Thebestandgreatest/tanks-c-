@@ -12,6 +12,8 @@ public class Lobby : Panel
 	private static readonly Dictionary<int, bool> PlayersAlive = new Dictionary<int, bool>();
 
 	private PackedScene _playerScene;
+	
+	private Networking _network;
 	private Node2D _world;
 	
 	private LineEdit _address;
@@ -29,8 +31,6 @@ public class Lobby : Panel
 	private Panel _endPanel;
 	private Label _winningPlayer;
 	private Button _menuButton;
-	
-	private Networking _network;
 
 	public override void _Ready()
 	{
@@ -38,7 +38,6 @@ public class Lobby : Panel
 		
 		// autoloads
 		_network = GetNode<Networking>("/root/Network");
-		GetNode<Global>("/root/Global");
 		_world = GetNode<Node2D>("/root/Players");
 		
 		// join panel
@@ -71,6 +70,8 @@ public class Lobby : Panel
 		GetTree().Connect("network_peer_connected", this, nameof(PlayerConnected));
 		GetTree().Connect("network_peer_disconnected", this, nameof(PlayerDisconnected));
 		GetTree().Connect("connected_to_server", this, nameof(ConnectedToServer));
+
+		_network.Connect("PlayerDiedSignal", this, nameof(PlayerDied));
 	}
 
 	private void PlayerDisconnected(int id)
@@ -93,7 +94,6 @@ public class Lobby : Panel
 		InstancePlayer(GetTree().GetNetworkUniqueId());
 		RpcId(1, nameof(AddPlayer), GetTree().GetNetworkUniqueId(), _name.Text);
 		PreStartGame();
-		_playerScene.Connect("PlayerDied", this, nameof(PlayerDied));
 	}
 
 	internal void OnJoinPressed()
@@ -205,7 +205,6 @@ public class Lobby : Panel
 		Rpc(nameof(ClearPlayerList));
 		foreach (KeyValuePair<int, string> player in Players)
 		{
-			Console.WriteLine(player);
 			Rpc(nameof(UpdatePlayerList), player.Key, player.Value);
 		}
 
@@ -241,24 +240,19 @@ public class Lobby : Panel
 		
 		PlayersAlive[id] = false;
 
-		foreach (KeyValuePair<int, bool> player in PlayersAlive)
-		{
-			Console.WriteLine(player.Key);
-			Console.WriteLine(player.Value);
-		}
-		
-		int alive = PlayersAlive.Count(player => player.Value);
+		List<int> alive = PlayersAlive.Where(x => x.Value).Select(x => x.Key).ToList();
 
-		if (alive <= 1)
-		{
-			Rpc(nameof(EndGame));
-		}
+		if (alive.Count > 1) return;
+		Console.WriteLine($"Player {alive[0]}");
+		Rpc(nameof(EndGame), alive[0]);
 	}
 
 	[Sync]
 	private void EndGame(int id)
 	{
+		_world.Hide();
 		_endPanel.Show();
+		Console.WriteLine("hi");
 		_winningPlayer.Text = $"{Players[id]} won the game!";
 	}
 

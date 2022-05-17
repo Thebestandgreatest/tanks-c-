@@ -197,5 +197,5 @@ margin_bottom = 20.0
 text = "Home"
 
 [node name="Camera2D" type="Camera2D" parent="."]
-position = Vector2( 512, 304 )
+position = Vector2( 512, 302 )
 current = true
