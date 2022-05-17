@@ -40,6 +40,12 @@ public class Networking : Node
     internal void ServerDisconnected()
     {
         GD.Print("Disconnected from server");
+    }
+
+    internal void ResetNetwork()
+    {
         GetTree().NetworkPeer = null;
+        _client = null;
+        _server = null;
     }
 }

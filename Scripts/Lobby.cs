@@ -26,6 +26,10 @@ public class Lobby : Panel
 	private Label _status;
 	private ItemList _teamAList;
 
+	private Panel _endPanel;
+	private Label _winningPlayer;
+	private Button _menuButton;
+	
 	private Networking _network;
 
 	public override void _Ready()
@@ -52,12 +56,18 @@ public class Lobby : Panel
 		_teamAList = _playerPanel.GetNode<ItemList>("Team A List");
 		_playerPanel.GetNode<ItemList>("Team B List");
 		_startButton = _playerPanel.GetNode<Button>("Start");
+		
+		// end panel
+		_endPanel = GetNode<Panel>("../End");
+		_winningPlayer = _endPanel.GetNode<Label>("VBoxContainer/Winner");
+		_menuButton = _endPanel.GetNode<Button>("VBoxContainer/HBoxContainer/Menu Button");
 
 		// button signals
 		_hostButton.Connect("pressed", this, nameof(OnHostPressed));
 		_joinButton.Connect("pressed", this, nameof(OnJoinPressed));
 		_startButton.Connect("pressed", this, nameof(OnStartPressed));
-
+		_menuButton.Connect("pressed", this, nameof(OnMenuPressed));
+		
 		GetTree().Connect("network_peer_connected", this, nameof(PlayerConnected));
 		GetTree().Connect("network_peer_disconnected", this, nameof(PlayerDisconnected));
 		GetTree().Connect("connected_to_server", this, nameof(ConnectedToServer));
@@ -83,6 +93,7 @@ public class Lobby : Panel
 		InstancePlayer(GetTree().GetNetworkUniqueId());
 		RpcId(1, nameof(AddPlayer), GetTree().GetNetworkUniqueId(), _name.Text);
 		PreStartGame();
+		_playerScene.Connect("PlayerDied", this, nameof(PlayerDied));
 	}
 
 	internal void OnJoinPressed()
@@ -230,12 +241,31 @@ public class Lobby : Panel
 		
 		PlayersAlive[id] = false;
 
+		foreach (KeyValuePair<int, bool> player in PlayersAlive)
+		{
+			Console.WriteLine(player.Key);
+			Console.WriteLine(player.Value);
+		}
+		
 		int alive = PlayersAlive.Count(player => player.Value);
 
 		if (alive <= 1)
 		{
-			
-			//end game
+			Rpc(nameof(EndGame));
 		}
+	}
+
+	[Sync]
+	private void EndGame(int id)
+	{
+		_endPanel.Show();
+		_winningPlayer.Text = $"{Players[id]} won the game!";
+	}
+
+	internal void OnMenuPressed()
+	{
+		_endPanel.Hide();
+		Show();
+		_network.ResetNetwork();
 	}
 }

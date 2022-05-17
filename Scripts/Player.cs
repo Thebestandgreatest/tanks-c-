@@ -6,6 +6,9 @@ using Godot;
 // ReSharper disable once ClassNeverInstantiated.Global
 public class Player : KinematicBody2D
 {
+    [Signal]
+    internal delegate void PlayerDied(int id);
+    
     private const int TankSpeed = 200;
     private const double TurretRotateSpeed = 2;
     private const double BodyRotateSpeed = 2;
@@ -29,7 +32,7 @@ public class Player : KinematicBody2D
     private bool _alive = true;
     
     private Networking _network;
-
+    
     [Puppet] private Vector2 _puppetPosition = new Vector2();
     [Puppet] private Vector2 _puppetVelocity = new Vector2();
     [Puppet] private float _puppetBodyRotation = 0;
@@ -158,6 +161,7 @@ public class Player : KinematicBody2D
             _tankBody.SetDeferred("disabled", true);
             _alive = false;
             _tankBody.Hide();
+            EmitSignal(nameof(PlayerDied), GetTree().GetNetworkUniqueId());
             _animatedSprite.Play("explode");
         }
         else
