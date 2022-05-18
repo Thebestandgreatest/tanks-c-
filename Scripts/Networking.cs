@@ -8,7 +8,7 @@ public class Networking : Node
     internal delegate void PlayerDiedSignal(int id);
     
     internal const int DefaultPort = 5672;
-    private const int MaxPlayers = 10;
+    private const int MaxPlayers = 30;
 
     private NetworkedMultiplayerENet _server;
     private NetworkedMultiplayerENet _client;
@@ -43,12 +43,20 @@ public class Networking : Node
     internal void ServerDisconnected()
     {
         GD.Print("Disconnected from server");
+        ResetNetwork();
     }
 
     internal void ResetNetwork()
     {
+        if (_client is object)
+        {
+            _client.CloseConnection();
+        }
+
+        if (_server is object)
+        {
+            _server.CloseConnection();
+        }
         GetTree().NetworkPeer = null;
-        _client = null;
-        _server = null;
     }
 }

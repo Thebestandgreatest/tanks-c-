@@ -15,6 +15,8 @@ public class Lobby : Panel
 	
 	private Networking _network;
 	private Node2D _world;
+
+	private Camera2D _camera;
 	
 	private LineEdit _address;
 	private Button _hostButton;
@@ -39,6 +41,8 @@ public class Lobby : Panel
 		// autoloads
 		_network = GetNode<Networking>("/root/Network");
 		_world = GetNode<Node2D>("/root/Players");
+
+		_camera = GetNode<Camera2D>("../Camera2D");
 		
 		// join panel
 		_address = GetNode<LineEdit>("Address");
@@ -166,7 +170,7 @@ public class Lobby : Panel
 		GetTree().Paused = true;
 		
 		Node2D playerInstance =
-		Global.InstanceNodeAtLocation(_playerScene, _world, new Vector2((float) GD.RandRange(-17, 17) * 100, (float) GD.RandRange(-14, 16) * 100));
+		Global.InstanceNodeAtLocation(_playerScene, _world, new Vector2((float) GD.RandRange(-17, 17) * 100, (float) GD.RandRange(-14, 16) * 100), 0F, 9);
 		playerInstance.Name = id.ToString();
 		playerInstance.SetNetworkMaster(id);
 		GetTree().Paused = true;
@@ -225,6 +229,8 @@ public class Lobby : Panel
 	[Sync]
 	private void StartGame()
 	{
+		PackedScene level = ResourceLoader.Load<PackedScene>("res://Scenes/Levels/Level A.tscn");
+		Global.InstanceNodeAtLocation(level, _world);
 		_playerPanel.Hide();
 		GetTree().Paused = false;
 	}
@@ -250,9 +256,9 @@ public class Lobby : Panel
 	[Sync]
 	private void EndGame(int id)
 	{
-		_world.Hide();
+		GetTree().Paused = true;
+		_camera.MakeCurrent();
 		_endPanel.Show();
-		Console.WriteLine("hi");
 		_winningPlayer.Text = $"{Players[id]} won the game!";
 	}
 
@@ -261,5 +267,11 @@ public class Lobby : Panel
 		_endPanel.Hide();
 		Show();
 		_network.ResetNetwork();
+		Players.Clear();
+		PlayersAlive.Clear();
+		foreach (Node child in _world.GetChildren())
+		{
+			child.QueueFree();
+		}
 	}
 }
