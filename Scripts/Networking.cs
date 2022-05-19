@@ -8,7 +8,7 @@ public class Networking : Node
     internal delegate void PlayerDiedSignal(int id);
     
     internal const int DefaultPort = 5672;
-    private const int MaxPlayers = 30;
+    private const int MaxPlayers = 32;
 
     private NetworkedMultiplayerENet _server;
     private NetworkedMultiplayerENet _client;
@@ -48,6 +48,7 @@ public class Networking : Node
 
     internal void ResetNetwork()
     {
+        BulletIndex = 0;   
         if (_client is object)
         {
             _client.CloseConnection();

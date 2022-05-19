@@ -72,6 +72,10 @@ public class Player : KinematicBody2D
         }
         else
         {
+            //GlobalPosition.LinearInterpolate(_puppetPosition, delta);
+            //_tankBody.GlobalRotationDegrees = Mathf.LerpAngle(_tankBody.GlobalRotationDegrees, _puppetBodyRotation, delta);
+            //_tankTurret.GlobalRotationDegrees = Mathf.LerpAngle(_tankTurret.GlobalRotationDegrees, _puppetTurretRotation, delta);
+
             GlobalPosition = _puppetPosition;
             _tankBody.GlobalRotationDegrees = _puppetBodyRotation;
             _tankTurret.GlobalRotationDegrees = _puppetTurretRotation;
@@ -150,7 +154,7 @@ public class Player : KinematicBody2D
         _canFire = true;
     }
 
-    [Remote]
+    [Sync]
     internal void BulletHit(int playerId)
     {
         if (_playerHealth == 0 || _playerHealth < 0)

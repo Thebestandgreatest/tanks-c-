@@ -36,6 +36,8 @@ public class Lobby : Panel
 
 	public override void _Ready()
 	{
+		GD.Randomize();
+		
 		_playerScene = ResourceLoader.Load<PackedScene>("res://Scenes/Player.tscn");
 		
 		// autoloads
@@ -274,6 +276,8 @@ public class Lobby : Panel
 		_network.ResetNetwork();
 		Players.Clear();
 		PlayersAlive.Clear();
+		_teamAList.Clear();
+		_status.Text = "";
 		foreach (Node child in _world.GetChildren())
 		{
 			child.QueueFree();
