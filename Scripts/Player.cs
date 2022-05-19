@@ -127,7 +127,7 @@ public class Player : KinematicBody2D
         if (!area.IsInGroup("Bullet") || area.GetParent().GetTree().GetNetworkUniqueId() != Name.ToInt() ||
             _tankBody.Disabled) return;
         area.GetParent().Rpc("DeleteBullet");
-        Rpc(nameof(BulletHit));
+        Rpc(nameof(BulletHit), GetTree().GetNetworkUniqueId());
     }
 
     private static double AngleDifference(double testAngle, double currentAngle)
@@ -150,8 +150,8 @@ public class Player : KinematicBody2D
         _canFire = true;
     }
 
-    [Sync]
-    internal void BulletHit()
+    [Remote]
+    internal void BulletHit(int playerId)
     {
         if (_playerHealth == 0 || _playerHealth < 0)
         {
@@ -159,7 +159,7 @@ public class Player : KinematicBody2D
             _alive = false;
             _tankBody.Hide();
             _animatedSprite.Play("explode");
-            _network.EmitSignal("PlayerDiedSignal", GetTree().GetNetworkUniqueId());
+            _network.EmitSignal("PlayerDiedSignal", playerId);
         }
         else
         {

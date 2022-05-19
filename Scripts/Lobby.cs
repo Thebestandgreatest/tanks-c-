@@ -248,8 +248,13 @@ public class Lobby : Panel
 
 		List<int> alive = PlayersAlive.Where(x => x.Value).Select(x => x.Key).ToList();
 
+		foreach (int person in alive)
+		{
+			Console.WriteLine(person);
+		}
+
 		if (alive.Count > 1) return;
-		Console.WriteLine($"Player {alive[0]}");
+		Console.WriteLine($"Player {alive[0]} is still alive");
 		Rpc(nameof(EndGame), alive[0]);
 	}
 
