@@ -26,9 +26,15 @@ public class Basic : Area2D
             GlobalPosition = _puppetPosition;
         }
     }
-
-    [Sync]
+    
     internal void DeleteBullet(string name)
+    {
+        QueueFree();
+        //Rpc(nameof(QueueDeletion));
+    }
+    
+    [Sync]
+    private void QueueDeletion()
     {
         QueueFree();
     }

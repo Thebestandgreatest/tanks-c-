@@ -145,7 +145,7 @@ public class Player : KinematicBody2D
     {
         Node2D bulletInstance = Global.InstanceNodeAtLocation(_bulletScene, GetTree().Root.GetNode("Players"), bulletPosition, bulletRotation);
         bulletInstance.Name = "Bullet " + _network.BulletIndex;
-        bulletInstance.SetNetworkMaster(id);
+        bulletInstance.SetNetworkMaster(1);
         _network.BulletIndex++;
 
         _canFire = false;

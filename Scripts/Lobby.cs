@@ -172,7 +172,7 @@ public class Lobby : Panel
 		GetTree().Paused = true;
 		
 		Node2D playerInstance =
-		Global.InstanceNodeAtLocation(_playerScene, _world, new Vector2((float) GD.RandRange(-17, 17) * 100, (float) GD.RandRange(-14, 16) * 100), 0F, 9);
+		Global.InstanceNodeAtLocation(_playerScene, _world, new Vector2((float) GD.RandRange(-16, 16) * 100, (float) GD.RandRange(-15, 18) * 100), 0F, 9);
 		playerInstance.Name = id.ToString();
 		playerInstance.SetNetworkMaster(id);
 		GetTree().Paused = true;
