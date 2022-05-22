@@ -26,6 +26,7 @@ public class Lobby : Panel
 	private Panel _hostPanel;
 
 	private Panel _playerPanel;
+	private Button _exitButton;
 	private Button _startButton;
 	private Label _status;
 	private ItemList _teamAList;
@@ -59,8 +60,8 @@ public class Lobby : Panel
 		// player panel
 		_playerPanel = GetNode<Panel>("../Players");
 		_teamAList = _playerPanel.GetNode<ItemList>("Team A List");
-		_playerPanel.GetNode<ItemList>("Team B List");
 		_startButton = _playerPanel.GetNode<Button>("Start");
+		_exitButton = _playerPanel.GetNode<Button>("Exit");
 		
 		// end panel
 		_endPanel = GetNode<Panel>("../End");
@@ -72,6 +73,7 @@ public class Lobby : Panel
 		_joinButton.Connect("pressed", this, nameof(OnJoinPressed));
 		_startButton.Connect("pressed", this, nameof(OnStartPressed));
 		_menuButton.Connect("pressed", this, nameof(OnMenuPressed));
+		_exitButton.Connect("pressed", this, nameof(OnExitPressed));
 		
 		GetTree().Connect("network_peer_connected", this, nameof(PlayerConnected));
 		GetTree().Connect("network_peer_disconnected", this, nameof(PlayerDisconnected));
@@ -83,9 +85,14 @@ public class Lobby : Panel
 	private void PlayerDisconnected(int id)
 	{
 		Console.WriteLine($"Player {id} disconnected");
-		if (_world.HasNode($"Players/{id.ToString()}"))
+		Players.Remove(id);
+		PlayersAlive.Remove(id);
+
+		RpcId(1, nameof(SendPlayerList));
+
+		if (_world.HasNode($"Players/{id}"))
 		{
-			_world.GetNode($"Players/{id.ToString()}").QueueFree();
+			_world.GetNode($"Players/{id}").QueueFree();
 		}
 	}
 
@@ -143,6 +150,14 @@ public class Lobby : Panel
 		PreStartGame();
 	}
 
+	internal void OnExitPressed()
+	{
+		OnMenuPressed();
+		_network.ResetNetwork();
+		_playerPanel.Hide();
+		Show();
+	}
+
 	private bool CheckUsername()
 	{
 		if (_name.Text.Trim() != "")
@@ -170,12 +185,9 @@ public class Lobby : Panel
 	private void InstancePlayer(int id)
 	{
 		GetTree().Paused = true;
-		
-		Node2D playerInstance =
-		Global.InstanceNodeAtLocation(_playerScene, _world, new Vector2((float) GD.RandRange(-16, 16) * 100, (float) GD.RandRange(-15, 18) * 100), 0F, 9);
+		Node2D playerInstance = Global.InstanceNodeAtLocation(_playerScene, _world, new Vector2((float) GD.RandRange(-6, 6) * 250, (float) GD.RandRange(-6, 7) * 100), 0F, 9);
 		playerInstance.Name = id.ToString();
 		playerInstance.SetNetworkMaster(id);
-		GetTree().Paused = true;
 	}
 
 	private void PreStartGame()
@@ -249,11 +261,6 @@ public class Lobby : Panel
 		PlayersAlive[id] = false;
 
 		List<int> alive = PlayersAlive.Where(x => x.Value).Select(x => x.Key).ToList();
-
-		foreach (int person in alive)
-		{
-			Console.WriteLine(person);
-		}
 
 		if (alive.Count > 1) return;
 		Console.WriteLine($"Player {alive[0]} is still alive");

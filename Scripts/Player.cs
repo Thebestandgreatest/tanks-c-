@@ -6,7 +6,6 @@ using Godot;
 // ReSharper disable once ClassNeverInstantiated.Global
 public class Player : KinematicBody2D
 {
-    private const int TankSpeed = 200;
     private const double TurretRotateSpeed = 2;
     private const double BodyRotateSpeed = 2;
     
@@ -18,6 +17,7 @@ public class Player : KinematicBody2D
     private Camera2D _camera;
     private AnimatedSprite _animatedSprite;
     private Area2D _bulletCollider;
+    private Label _nameLabel;
 
     private double _turretAngle;
     private Vector2 _turretOffset = new Vector2(0,-80);
@@ -27,7 +27,8 @@ public class Player : KinematicBody2D
     private bool _gameStarted;
     private int _playerHealth = 3;
     private bool _alive = true;
-    
+    private int _tankSpeed = 200;
+
     private Networking _network;
     
     [Puppet] private Vector2 _puppetPosition = new Vector2();
@@ -45,16 +46,16 @@ public class Player : KinematicBody2D
         _camera = GetNode<Camera2D>("Camera2D");
         _animatedSprite = GetNode<AnimatedSprite>("AnimatedSprite");
         _bulletCollider = GetNode<Area2D>("Area2D");
+        _nameLabel = GetNode<Label>("NameLabel");
 
         _bulletCollider.Connect("area_entered", this, nameof(BulletCollision));
-        
     }
 
     public override void _PhysicsProcess(float delta)
     {
-        if (!_alive) return;
         if (IsNetworkMaster() && _gameStarted == false)
         {
+            _nameLabel.Text = _network.playerName;
             _camera.Current = true;
             _gameStarted = true;
         }
@@ -84,12 +85,18 @@ public class Player : KinematicBody2D
         Animate();
     }
 
+    internal void SetPlayerName(string name)
+    {
+        Console.WriteLine($"Player name is {name}");
+        _nameLabel.Text = name;
+    }
+
     private void GetInput()
     {
         _velocity = new Vector2();
-        _velocity = Input.GetVector("ui_left", "ui_right", "ui_up", "ui_down") * TankSpeed;
+        _velocity = Input.GetVector("ui_left", "ui_right", "ui_up", "ui_down") * _tankSpeed;
 
-        if (!Input.IsActionPressed("fire") || !_canFire) return;
+        if (!Input.IsActionPressed("fire") || !_canFire || !_alive) return;
         float bulletRotation = _tankTurret.RotationDegrees + _tankBody.RotationDegrees + 180;
         Vector2 bulletPosition = _tankTurret.GlobalPosition + _turretOffset.Rotated(Mathf.Deg2Rad(bulletRotation));
         Rpc(nameof(PlayerShoot), bulletPosition, bulletRotation, GetTree().GetNetworkUniqueId());
@@ -164,6 +171,8 @@ public class Player : KinematicBody2D
             _tankBody.Hide();
             _animatedSprite.Play("explode");
             _network.EmitSignal("PlayerDiedSignal", playerId);
+            
+            _tankSpeed *= 2;
         }
         else
         {

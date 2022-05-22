@@ -4,8 +4,8 @@ using Godot;
 // ReSharper disable once ClassNeverInstantiated.Global
 public class Networking : Node
 {
-    [Signal]
-    internal delegate void PlayerDiedSignal(int id);
+    [Signal] internal delegate void PlayerDiedSignal(int id);
+    [Signal] internal delegate void PlayerName(string name);
     
     internal const int DefaultPort = 5672;
     private const int MaxPlayers = 32;
@@ -14,6 +14,7 @@ public class Networking : Node
     private NetworkedMultiplayerENet _client;
 
     internal int BulletIndex = 1;
+    internal string playerName = "";
 
     public override void _Ready()
     {

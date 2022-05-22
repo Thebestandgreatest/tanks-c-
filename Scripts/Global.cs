@@ -14,15 +14,4 @@ public class Global : Node
         parent.AddChild(nodeInstance);
         return nodeInstance;
     }
-
-    public static Node2D InstanceNetworkMasterNode(PackedScene node, Node parent, Vector2 location, float rotation,
-        int owner)
-    {
-        Node2D nodeInstance = node.Instance<Node2D>();
-        nodeInstance.GlobalPosition = location;
-        nodeInstance.GlobalRotationDegrees = rotation;
-        nodeInstance.SetNetworkMaster(owner);
-        parent.AddChild(nodeInstance);
-        return nodeInstance;
-    }
 }

@@ -111,9 +111,6 @@ margin_left = 192.0
 margin_top = 144.0
 margin_right = 832.0
 margin_bottom = 464.0
-__meta__ = {
-"_edit_use_anchors_": false
-}
 
 [node name="Team A List" type="ItemList" parent="Players"]
 anchor_right = 1.0
@@ -156,6 +153,13 @@ margin_right = 576.0
 margin_bottom = 38.0
 text = "Team B"
 align = 1
+
+[node name="Exit" type="Button" parent="Players"]
+margin_left = 24.0
+margin_top = 14.0
+margin_right = 73.0
+margin_bottom = 34.0
+text = "Leave"
 
 [node name="End" type="Panel" parent="."]
 visible = false
